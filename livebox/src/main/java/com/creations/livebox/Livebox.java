@@ -1,6 +1,7 @@
 package com.creations.livebox;
 
 import com.creations.livebox.converters.Converter;
+import com.creations.livebox.converters.ConvertersFactory;
 import com.creations.livebox.datasources.DiskLruDataSource;
 import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.datasources.RemoteDataSource;
@@ -69,6 +70,8 @@ public class Livebox<RemoteData, Output> {
 
     private Map<Class<?>, Converter<Output>> mConvertersMap = new HashMap<>();
 
+    private Optional<ConvertersFactory<Output>> mConverterFactory;
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private Livebox(BoxKey key) {
         ObjectHelper.requireNonNull(key, "Key cannot be null");
@@ -124,6 +127,11 @@ public class Livebox<RemoteData, Output> {
         return this;
     }
 
+    public Livebox<RemoteData, Output> addConverterFactory(ConvertersFactory<Output> converterFactory) {
+        mConverterFactory = Optional.ofNullable(converterFactory);
+        return this;
+    }
+
 
     private Observable<Optional<?>> loadFromLocalSource() {
         Logger.d(TAG, "loadFromLocalSource() called");
@@ -166,7 +174,15 @@ public class Livebox<RemoteData, Output> {
     }
 
     private Output convert(Object o) throws Exception {
-        Converter<Output> converter = mConvertersMap.get(o.getClass());
+
+        Converter<Output> converter;
+        if (mConverterFactory.isPresent()) {
+            Logger.d(TAG, "---> Using converter factory");
+            converter = mConverterFactory.get().get(o.getClass());
+        } else {
+            converter = mConvertersMap.get(o.getClass());
+        }
+
         if (Objects.nonNull(converter)) {
             Optional<Output> data = converter.convert(o);
             Logger.d(TAG, "---> Converter found for type: " + o.getClass());
@@ -176,7 +192,7 @@ public class Livebox<RemoteData, Output> {
             return data.get();
         }
 
-        // If no converter was found, we try to cast because remoteData type parameter
+        // If no converter was found, we try casting because remoteData type parameter
         // could have the same type as output type parameter, in that case no converter is needed.
         //noinspection unchecked
         return (Output) o;

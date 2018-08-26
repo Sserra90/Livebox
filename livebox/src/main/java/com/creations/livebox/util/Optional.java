@@ -1,14 +1,13 @@
 package com.creations.livebox.util;
 
+import java.util.NoSuchElementException;
+import java.util.Objects;
+
 /**
  * @author Sérgio Serra on 26/08/2018.
  * Criations
  * sergioserra99@gmail.com
  */
-
-import java.util.NoSuchElementException;
-import java.util.Objects;
-
 public final class Optional<T> {
     /**
      * Common instance for {@code empty()}.
