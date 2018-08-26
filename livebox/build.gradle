@@ -1,0 +1,58 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 27
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+ext {
+    gson = "2.8.2"
+    rxandroid = "2.0.2"
+    rxjava = "2.2.1"
+    okio = "1.15.0"
+    igDiskCache  = "1.0.0@aar"
+    powerMock = "1.7.4"
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation "com.google.code.gson:gson:$gson"
+
+    implementation "io.reactivex.rxjava2:rxandroid:$rxandroid"
+    implementation "io.reactivex.rxjava2:rxjava:$rxjava"
+
+    implementation "com.squareup.okio:okio:$okio"
+    implementation "com.instagram.igdiskcache:ig-disk-cache:$igDiskCache"
+
+    implementation group: 'commons-io', name: 'commons-io', version: '2.6'
+
+    testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: "$powerMock"
+    testCompile group: 'org.powermock', name: 'powermock-api-mockito2', version: "$powerMock"
+
+    testImplementation 'org.mockito:mockito-core:2.8.9'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
