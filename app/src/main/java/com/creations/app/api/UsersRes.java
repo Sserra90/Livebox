@@ -9,8 +9,10 @@ import java.util.List;
  * @author Sérgio Serra on 25/08/2018.
  * Criations
  * sergioserra99@gmail.com
+ *
+ * Representation of GitHub service API response from getUsers endpoint.
  */
-public class Users {
+public class UsersRes {
 
     @SerializedName("items")
     private List<User> items = new ArrayList<>();
@@ -25,7 +27,7 @@ public class Users {
 
     @Override
     public String toString() {
-        return "Users{" +
+        return "UsersRes{" +
                 "items=" + items +
                 '}';
     }

@@ -106,6 +106,10 @@ public final class Optional<T> {
         return value != null;
     }
 
+    public boolean isAbsent() {
+        return value == null;
+    }
+
     /**
      * Return the value if present, otherwise return {@code other}.
      *

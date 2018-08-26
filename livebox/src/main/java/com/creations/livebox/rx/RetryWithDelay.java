@@ -10,6 +10,8 @@ import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Flowable;
 import io.reactivex.FlowableTransformer;
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
 import io.reactivex.functions.Function;
 
 /**
@@ -19,7 +21,7 @@ import io.reactivex.functions.Function;
  * <p>
  * Taken from # https://stackoverflow.com/questions/22066481/rxjava-can-i-use-retry-but-with-delay
  */
-public class RetryWithDelay implements Function<Flowable<Throwable>, Publisher<?>> {
+public class RetryWithDelay implements Function<Observable<Throwable>, Observable<?>> {
 
     private static final String TAG = "RetryWithDelay";
 
@@ -27,24 +29,24 @@ public class RetryWithDelay implements Function<Flowable<Throwable>, Publisher<?
     private final long retryDelayMillis;
     private int retryCount;
 
-    public RetryWithDelay(final int maxRetries, final long retryDelayMillis) {
+    RetryWithDelay(final int maxRetries, final long retryDelayMillis) {
         this.maxRetries = maxRetries;
         this.retryDelayMillis = retryDelayMillis;
         this.retryCount = 0;
     }
 
     @Override
-    public Publisher<?> apply(Flowable<Throwable> attempts) {
-        return attempts.flatMap((Function<Throwable, Flowable<?>>) throwable -> {
+    public Observable<?> apply(Observable<Throwable> attempts) {
+        return attempts.flatMap((Function<Throwable, ObservableSource<Long>>) throwable -> {
             if (++retryCount < maxRetries) {
                 Logger.d(TAG, "Retry for the " + retryCount + " time");
                 // When this Observable calls onNext, the original
                 // Observable will be retried (i.e. re-subscribed).
-                return Flowable.timer(retryDelayMillis, TimeUnit.MILLISECONDS);
+                return Observable.timer(retryDelayMillis, TimeUnit.MILLISECONDS);
             }
 
             // Max retries hit. Just pass the error along.
-            return Flowable.error(throwable);
+            return Observable.error(throwable);
         });
     }
 

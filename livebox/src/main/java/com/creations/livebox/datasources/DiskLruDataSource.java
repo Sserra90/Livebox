@@ -3,6 +3,8 @@ package com.creations.livebox.datasources;
 import com.creations.livebox.Logger;
 import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.serializers.Serializer;
+import com.creations.livebox.util.Optional;
+import com.creations.livebox.validator.DataValidator;
 import com.instagram.igdiskcache.EditorOutputStream;
 import com.instagram.igdiskcache.IgDiskCache;
 import com.instagram.igdiskcache.OptionalStream;
@@ -31,15 +33,19 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
     private String mKey;
     private LiveboxDiskCache mDiskCache;
     private Serializer<I> mSerializer;
+    private Optional<DataValidator<O>> mValidator;
 
-    private DiskLruDataSource(String key, Type type) {
+    private DiskLruDataSource(String key, Type type, Optional<DataValidator<O>> validator) {
         mKey = key;
         mDiskCache = LiveboxDiskCache.getInstance(mDiskCacheConfig);
         mSerializer = LiveboxGsonSerializer.create(type);
+        mValidator = validator;
     }
 
-    public static <I, O> DiskLruDataSource<I, O> create(String key, Type type) {
-        return new DiskLruDataSource<>(key, type);
+    public static <I, O> DiskLruDataSource<I, O> create(String key,
+                                                        Type type,
+                                                        Optional<DataValidator<O>> validator) {
+        return new DiskLruDataSource<>(key, type, validator);
     }
 
     public static void setConfig(Config config) {
@@ -47,15 +53,17 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
     }
 
     @Override
-    public O read() {
+    public Optional<O> read() {
         OptionalStream<SnapshotInputStream> iis = mDiskCache.get(mKey);
         Logger.d(TAG, "Read from disk cache is present: " + iis.isPresent() + " with  key: " + mKey);
         if (iis.isPresent()) {
             //noinspection unchecked
-            return (O) mSerializer.deserialize(bufferedSource(iis.get()));
+            O data = (O) mSerializer.deserialize(bufferedSource(iis.get()));
+            return Optional.ofNullable(isValid(data) ? data : null);
         }
-        return null;
+        return Optional.empty();
     }
+
 
     @Override
     public void save(I input) throws IllegalStateException {
@@ -77,7 +85,18 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Logger.d(TAG, "Success -> Wrote to disk cache output stream.");
+        Logger.d(TAG, "---> Success data saved in diskLruDataSource.");
+    }
+
+    private boolean isValid(O input) {
+        return mValidator.isPresent() && mValidator.get().isValid(input);
+    }
+
+    @Override
+    public String toString() {
+        return "DiskLruDataSource{" +
+                "mKey='" + mKey + '\'' +
+                '}';
     }
 
     public static class Config {

@@ -7,6 +7,7 @@ import org.reactivestreams.Publisher;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.FlowableTransformer;
+import io.reactivex.ObservableTransformer;
 
 /**
  * @author Sérgio Serra on 25/08/2018.
@@ -17,7 +18,7 @@ public class Transformers {
 
     private static final String TAG = "Transformers";
 
-    public static <T> FlowableTransformer<T, T> withRetry(boolean retry) {
+    public static <T> ObservableTransformer<T, T> withRetry(boolean retry) {
         return upstream -> {
             if (retry) {
                 Log.d(TAG, "Compose with retry");

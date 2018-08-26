@@ -11,17 +11,18 @@ import android.view.MenuItem;
 
 import com.creations.app.api.Api;
 import com.creations.app.api.GithubService;
-import com.creations.app.api.Users;
+import com.creations.app.api.UsersRes;
+import com.creations.app.entities.Users;
 import com.creations.livebox.Livebox;
 import com.creations.livebox.datasources.DiskLruDataSource;
+import com.creations.livebox.util.Objects;
+import com.creations.livebox.util.Optional;
 import com.creations.livebox.util.Utils;
+import com.creations.livebox.validator.DataValidator;
 
 import java.io.File;
 
-import io.reactivex.BackpressureStrategy;
 import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -59,19 +60,21 @@ public class MainActivity extends AppCompatActivity {
     private void getUsers() {
         final GithubService service = Api.getInstance().getGithubService();
 
-        Observable<Users> usersObservable = Livebox
-                .<Users, Users, Users>build(new Livebox.BoxKey("get_users"))
-                .remoteDataSource(() -> service.getUserList().toFlowable(BackpressureStrategy.BUFFER))
-                .localDataSource(DiskLruDataSource.create("get_users", Users.class))
-                .remoteDataSourceMapper(users -> users)
-                .localDataSourceMapper(users -> users)
-                .setDataValidator(item -> true)
-                .asObservable();
+        Optional<DataValidator<UsersRes>> diskValidator = Optional.of(item -> {
+            Log.d(TAG, "Validating data of disk lru source");
+            return Objects.nonNull(item) && !item.getItems().isEmpty();
+        });
 
-        usersObservable
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(users -> Log.d(TAG, "Users: " + users), Throwable::printStackTrace);
+        Observable<Users> usersObservable = Livebox
+                .<UsersRes, Users>build(new Livebox.BoxKey("get_users"))
+                .remoteSource(service::getUserList)
+                .addLocalSource(DiskLruDataSource.create("get_users", UsersRes.class, diskValidator))
+                .addConverter(UsersRes.class, data -> Optional.of(Users.fromUsersRes((UsersRes) data)))
+                .retryOnFailure()
+                .keepDataFresh()
+                .asAndroidObservable();
+
+        usersObservable.subscribe(users -> Log.d(TAG, "UsersRes: " + users), Throwable::printStackTrace);
 
     }
 

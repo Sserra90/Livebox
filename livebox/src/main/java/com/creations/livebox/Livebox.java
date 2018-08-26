@@ -1,38 +1,42 @@
 package com.creations.livebox;
 
-import android.util.Log;
-
+import com.creations.livebox.converters.Converter;
 import com.creations.livebox.datasources.DiskLruDataSource;
 import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.datasources.RemoteDataSource;
 import com.creations.livebox.rx.Transformers;
+import com.creations.livebox.util.Objects;
 import com.creations.livebox.util.Optional;
-import com.creations.livebox.validator.DataValidator;
 
-import org.reactivestreams.Publisher;
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.reactivex.Flowable;
-import io.reactivex.FlowableTransformer;
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.ObservableTransformer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
 import io.reactivex.internal.functions.ObjectHelper;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * @author Sérgio Serra
  * Criations
  * sergioserra99@gmail.com
  */
-public class Livebox<RemoteSourceResult, LocalSourceResult, Output> {
+public class Livebox<RemoteData, Output> {
 
     private static final String TAG = "Livebox";
     // Keeps a record of in-flight requests.
-    private static final ConcurrentHashMap<BoxKey, Flowable> inFlightRequests = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<BoxKey, Observable> inFlightRequests = new ConcurrentHashMap<>();
     // Is instance initialized
     private static boolean mInit = false;
+
     // A unique key that identifies this Livebox, used to keep track of in-flight requests.
     // Also this key is used to save and retrieve entries in cache
     private BoxKey mKey;
@@ -43,29 +47,27 @@ public class Livebox<RemoteSourceResult, LocalSourceResult, Output> {
     // Indicates if we should retry the remote data source request if an error occurs
     private boolean mRetryOnFailure = false;
     // Remote data source
-    private RemoteDataSource<Flowable<RemoteSourceResult>> mRemoteDataSource;
-    // Local data source
-    private LocalDataSource<RemoteSourceResult, LocalSourceResult> mLocalDataSource;
-    // Validator used to check if local data is still valid
-    private DataValidator<LocalSourceResult> mDataValidator;
-    // Mappers, used to map LocalSourceResult -> Output and RemoteSourceResult -> Output
-    private Function<LocalSourceResult, Output> mLocalMapper;
-    private Function<RemoteSourceResult, Output> mRemoteMapper;
-    private FlowableTransformer<Output, Output> withShare = new FlowableTransformer<Output, Output>() {
+    private RemoteDataSource<Observable<RemoteData>> mRemoteDataSource;
+    // Local data sources
+    private List<LocalDataSource<RemoteData, ?>> mLocalSources = new ArrayList<>();
+    // Transformer that adds share functionality to an observable
+    private ObservableTransformer<Output, Output> withShare = new ObservableTransformer<Output, Output>() {
         @Override
-        public Publisher<Output> apply(Flowable<Output> upstream) {
-            Log.d(TAG, "Compose with share");
-            Flowable<Output> flowable = upstream
+        public ObservableSource<Output> apply(Observable<Output> upstream) {
+            Logger.d(TAG, "Compose with share");
+            Observable<Output> observable = upstream
                     .doOnTerminate(() -> {
-                        Log.d(TAG, "Remove from inFlightRequests with key: " + mKey);
+                        Logger.d(TAG, "Remove from inFlightRequests with key: " + mKey);
                         inFlightRequests.remove(mKey);
                     })
                     .share();
 
-            inFlightRequests.putIfAbsent(mKey, flowable);
-            return flowable;
+            inFlightRequests.putIfAbsent(mKey, observable);
+            return observable;
         }
     };
+
+    private Map<Class<?>, Converter<Output>> mConvertersMap = new HashMap<>();
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private Livebox(BoxKey key) {
@@ -80,8 +82,7 @@ public class Livebox<RemoteSourceResult, LocalSourceResult, Output> {
         mInit = true;
     }
 
-    public static <RemoteSourceResult, LocalSourceResult, Output>
-    Livebox<RemoteSourceResult, LocalSourceResult, Output> build(BoxKey key) {
+    public static <RemoteSourceResult, Output> Livebox<RemoteSourceResult, Output> build(BoxKey key) {
         if (!mInit) {
             throw new IllegalStateException("Init must be called before using Livebox");
         }
@@ -90,135 +91,150 @@ public class Livebox<RemoteSourceResult, LocalSourceResult, Output> {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void checkPreconditions() {
-        ObjectHelper.requireNonNull(mLocalMapper, "No local mapper was found");
-        ObjectHelper.requireNonNull(mRemoteMapper, "No remote mapper was found");
-
-        if (mLocalDataSource != null && mDataValidator == null) {
-            throw new IllegalStateException("We need a validator to check local data freshness");
-        }
-
     }
 
 
-    public Livebox<RemoteSourceResult, LocalSourceResult, Output> keepDataFresh() {
+    public Livebox<RemoteData, Output> keepDataFresh() {
         mRefresh = true;
         return this;
     }
 
-    public Livebox<RemoteSourceResult, LocalSourceResult, Output> remoteDataSourceMapper(Function<RemoteSourceResult, Output> remoteMapper) {
-        mRemoteMapper = remoteMapper;
-        return this;
-    }
-
-    public Livebox<RemoteSourceResult, LocalSourceResult, Output> localDataSourceMapper(Function<LocalSourceResult, Output> localMapper) {
-        mLocalMapper = localMapper;
-        return this;
-    }
-
-    public Livebox<RemoteSourceResult, LocalSourceResult, Output> ignoreCache(boolean ignore) {
+    public Livebox<RemoteData, Output> ignoreCache(boolean ignore) {
         mIgnoreDiskCache = ignore;
         return this;
     }
 
-    public Livebox<RemoteSourceResult, LocalSourceResult, Output> retryOnFailure() {
+    public Livebox<RemoteData, Output> retryOnFailure() {
         mRetryOnFailure = true;
         return this;
     }
 
-    public Livebox<RemoteSourceResult, LocalSourceResult, Output> setDataValidator(DataValidator<LocalSourceResult> dataValidator) {
-        mDataValidator = dataValidator;
-        return this;
-    }
-
-    public Livebox<RemoteSourceResult, LocalSourceResult, Output> remoteDataSource(RemoteDataSource<Flowable<RemoteSourceResult>> source) {
+    public Livebox<RemoteData, Output> remoteSource(RemoteDataSource<Observable<RemoteData>> source) {
         mRemoteDataSource = source;
         return this;
     }
 
-    public Livebox<RemoteSourceResult, LocalSourceResult, Output> localDataSource(
-            LocalDataSource<RemoteSourceResult, LocalSourceResult> source) {
-        mLocalDataSource = source;
+    public Livebox<RemoteData, Output> addLocalSource(LocalDataSource<RemoteData, ?> source) {
+        mLocalSources.add(source);
+        return this;
+    }
+
+    public Livebox<RemoteData, Output> addConverter(Class<?> aClass, Converter<Output> converter) {
+        mConvertersMap.put(aClass, converter);
         return this;
     }
 
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private Flowable<Optional<LocalSourceResult>> loadFromLocalSource() {
-        ObjectHelper.requireNonNull(mLocalDataSource, "Local data source cannot be null");
-        Log.d(TAG, "loadFromLocalSource() called");
-        return Flowable.fromCallable(() -> Optional.ofNullable(mLocalDataSource.read()));
-    }
+    private Observable<Optional<?>> loadFromLocalSource() {
+        Logger.d(TAG, "loadFromLocalSource() called");
 
-    // Check if local data is valid, if validator is null always return false.
-    private boolean isLocalDataValid(LocalSourceResult localData) {
-        Log.d(TAG, "isLocalDataValid() called with: localData = [" + localData + "]");
-        return mDataValidator != null && mDataValidator.isValid(localData);
+        if (mLocalSources.isEmpty()) {
+            throw new IllegalStateException("No local source found");
+        }
+
+        return Observable.fromIterable(mLocalSources)
+                .map((Function<LocalDataSource<RemoteData, ?>, Optional<?>>) source -> {
+                    Logger.d(TAG, "---> Hit source " + source);
+                    return source.read();
+                })
+                .filter(Optional::isPresent)
+                .first(Optional.ofNullable(null))
+                .doOnSuccess(optional -> {
+                    if (optional.isPresent()) {
+                        Logger.d(TAG, "---> Found valid data");
+                        return;
+                    }
+                    Logger.d(TAG, "---> No valid data found");
+                })
+                .toObservable();
     }
 
     // Maps data from local data source type -> output type
-    private Flowable<Output> returnFromLocalDataSource(LocalSourceResult localData) {
-        Log.d(TAG, "returnFromLocalDataSource() called with: localData = [" + localData + "]");
-        return Flowable.fromCallable(() -> mLocalMapper.apply(localData));
+    private Observable<Output> returnLocalData(Object localData) throws Exception {
+        Logger.d(TAG, "returnLocalData() called with: localData = [" + localData + "]");
+        return Observable.just(convert(localData));
     }
 
-    // Fetch data from remote data source.
-    // After fetching, save in local data source and map to return type.
-    private Flowable<Output> fetchFromRemoteDataSourceAndSave() {
-        Log.d(TAG, "fetchFromRemoteDataSourceAndSave() called");
-        return Flowable
+    // Fetch data from remote data source and pass new data to local sources.
+    private Observable<Output> fetchFromRemoteDataSourceAndSave() {
+        Logger.d(TAG, "fetchFromRemoteDataSourceAndSave() called");
+        return Observable
                 .defer(mRemoteDataSource::fetch)
-                .doOnNext(mLocalDataSource::save)
+                .doOnNext(this::passRemoteDataToLocalSources)
                 .compose(Transformers.withRetry(mRetryOnFailure))
-                .map(mRemoteMapper);
+                .map(this::convert);
     }
 
-    private Flowable<Output> fetchFromRemoteDataSource() {
+    private Output convert(Object o) throws Exception {
+        Converter<Output> converter = mConvertersMap.get(o.getClass());
+        if (Objects.nonNull(converter)) {
+            Optional<Output> data = converter.convert(o);
+            Logger.d(TAG, "---> Converter found for type: " + o.getClass());
+            if (data.isAbsent()) {
+                throw new IllegalStateException("Converter: " + converter + "returned null for: " + o);
+            }
+            return data.get();
+        }
+
+        // If no converter was found, we try to cast because remoteData type parameter
+        // could have the same type as output type parameter, in that case no converter is needed.
+        //noinspection unchecked
+        return (Output) o;
+    }
+
+    private void passRemoteDataToLocalSources(RemoteData data) {
+        Logger.d(TAG, "\n");
+        Logger.d(TAG, "Pass fresh data to local sources");
+        for (LocalDataSource<RemoteData, ?> localSource : mLocalSources) {
+            Logger.d(TAG, "---> Saving fresh data in: " + localSource);
+            localSource.save(data);
+        }
+    }
+
+    private Observable<Output> fetchFromRemoteDataSource() {
         return mRemoteDataSource.fetch()
+                .map(this::convert)
                 .compose(Transformers.withRetry(mRetryOnFailure))
-                .map(mRemoteMapper);
+                .compose(withShare);
     }
 
-    public Flowable<Output> asFlowable() {
-        //checkPreconditions();
+    public Observable<Output> asObservable() {
 
         // Check if we have an in-flight request ongoing.
-        // If we do return the flowable so the caller can subscribe to it.
+        // If we do return the Observable so the caller can subscribe to it.
         if (inFlightRequests.get(mKey) != null) {
-            Log.d(TAG, "We have a in-flight request for key: " + mKey);
+            Logger.d(TAG, "---> We have a in-flight request for key: " + mKey);
             //noinspection unchecked
-            return inFlightRequests.get(mKey);
+            return (Observable<Output>) inFlightRequests.get(mKey);
         }
 
         // If ignore disk cache is true always hit remote data source
         if (mIgnoreDiskCache) {
-            Log.d(TAG, "Ignore disk cache, hit remote data source");
-            return fetchFromRemoteDataSource().compose(withShare);
+            Logger.d(TAG, "Ignore disk cache, hit remote data source");
+            return fetchFromRemoteDataSource();
         }
 
         // Get data from local source.
-        Flowable<Output> retFlowable = loadFromLocalSource()
-                .flatMap((Function<Optional<LocalSourceResult>, Publisher<Output>>) localResultOpt -> {
+        Observable<Output> retObservable = loadFromLocalSource()
+                .flatMap((Function<Optional<?>, Observable<Output>>) localResult -> {
 
-                    // Check if the local data is valid
-                    final boolean isValid = localResultOpt.isPresent() && isLocalDataValid(localResultOpt.get());
-
-                    // Local data is invalid, return a Flowable that fetches remote data and
+                    // Local data is invalid, return a Observable that fetches remote data and
                     // saves to local data source.
-                    if (!isValid) {
-                        Log.d(TAG, "Local data is invalid, hit remote data source and save");
+                    if (localResult.isAbsent()) {
+                        Logger.d(TAG, "Local data is invalid, hit remote data source and save");
                         return fetchFromRemoteDataSourceAndSave();
                     }
 
                     // At this point we know we have valid local data,
-                    // if the user does not want to refresh return, otherwise return a flowable
+                    // if the user does not want to refresh return, otherwise return a Observable
                     // that emits local data, fetches the latest data from remote source and saves it.
                     if (!mRefresh) {
-                        Log.d(TAG, "Local data is valid, do not hit remote data source");
-                        return returnFromLocalDataSource(localResultOpt.get());
+                        Logger.d(TAG, "Local data is valid, do not hit remote data source");
+                        return returnLocalData(localResult.get());
                     } else {
-                        Log.d(TAG, "Local data is valid but still hit remote data source to refresh data");
-                        return Flowable.concat(
-                                returnFromLocalDataSource(localResultOpt.get()),
+                        Logger.d(TAG, "Local data is valid but still hit remote data source to refresh data");
+                        return Observable.concat(
+                                returnLocalData(localResult.get()),
                                 fetchFromRemoteDataSourceAndSave()
                         );
                     }
@@ -226,12 +242,15 @@ public class Livebox<RemoteSourceResult, LocalSourceResult, Output> {
 
         // Using share to avoid multiple requests to be executed.
         // #see https://stackoverflow.com/questions/35951942/single-observable-with-multiple-subscribers/35952390#35952390
-        return retFlowable.compose(withShare);
+        return retObservable.compose(withShare);
     }
 
-    public Observable<Output> asObservable() {
-        //checkPreconditions();
-        return asFlowable().toObservable();
+    // Convenience method to return an Observable that observes on Android main thread
+    // and subscribes on IO scheduler.
+    public Observable<Output> asAndroidObservable() {
+        return asObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
     }
 
     // A Key that uses a single string as identifier
