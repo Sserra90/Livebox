@@ -35,6 +35,7 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
     private Serializer<I> mSerializer;
     private Optional<DataValidator<O>> mValidator;
 
+
     private DiskLruDataSource(String key, Type type, Optional<DataValidator<O>> validator) {
         mKey = key;
         mDiskCache = LiveboxDiskCache.getInstance(mDiskCacheConfig);
@@ -47,6 +48,7 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
                                                         Optional<DataValidator<O>> validator) {
         return new DiskLruDataSource<>(key, type, validator);
     }
+
 
     public static void setConfig(Config config) {
         DiskLruDataSource.mDiskCacheConfig = config;

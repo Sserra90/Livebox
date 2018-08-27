@@ -14,8 +14,6 @@ import com.creations.app.api.GithubService;
 import com.creations.app.api.UsersRes;
 import com.creations.app.entities.Users;
 import com.creations.livebox.Livebox;
-import com.creations.livebox.converters.Converter;
-import com.creations.livebox.converters.ConvertersFactory;
 import com.creations.livebox.datasources.DiskLruDataSource;
 import com.creations.livebox.util.Objects;
 import com.creations.livebox.util.Optional;
@@ -70,12 +68,21 @@ public class MainActivity extends AppCompatActivity {
         Observable<Users> usersObservable = Livebox
                 .<UsersRes, Users>build(new Livebox.BoxKey("get_users"))
                 .remoteSource(service::getUserList)
+                //.addLocalSource(Sources.MEMORY_LRU)
+                //.addLocalSource(Sources.DISK_LRU)
+                /*.addLocalSourceFactory(new DataSourceFactory<UsersRes>() {
+                    @Override
+                    public Optional<LocalDataSource<UsersRes, ?>> get(int id) {
+                        return Optional.of(DiskLruDataSource.<UsersRes, Users>create("", Integer.class, Optional.ofNullable(null)));
+                    }
+                })*/
                 .addLocalSource(DiskLruDataSource.create("get_users", UsersRes.class, diskValidator))
                 .addConverter(UsersRes.class, data -> Optional.of(Users.fromUsersRes((UsersRes) data)))
                 .retryOnFailure()
                 .keepDataFresh()
                 .asAndroidObservable();
 
+        //liveData.observe(this, users -> Log.d(TAG, "UsersRes: " + users));
         usersObservable.subscribe(users -> Log.d(TAG, "UsersRes: " + users), Throwable::printStackTrace);
 
     }

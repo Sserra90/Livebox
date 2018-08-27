@@ -1,6 +1,17 @@
 apply plugin: 'com.android.application'
 
+configurations.all {
+    resolutionStrategy {
+        eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'android.arch.lifecycle') {
+                details.useVersion "1.1.1"
+            }
+        }
+    }
+}
+
 android {
+
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.creations.livebox"

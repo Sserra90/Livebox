@@ -1,8 +1,14 @@
 package com.creations.livebox;
 
+import android.arch.lifecycle.LiveData;
+
+import com.creations.livebox.adapters.LiveDataAdapter;
+import com.creations.livebox.adapters.ObservableAdapter;
 import com.creations.livebox.converters.Converter;
 import com.creations.livebox.converters.ConvertersFactory;
+import com.creations.livebox.datasources.DataSourceFactory;
 import com.creations.livebox.datasources.DiskLruDataSource;
+import com.creations.livebox.datasources.LiveboxDataSourceFactory;
 import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.datasources.RemoteDataSource;
 import com.creations.livebox.rx.Transformers;
@@ -21,6 +27,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.ObservableTransformer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Function;
 import io.reactivex.internal.functions.ObjectHelper;
 import io.reactivex.schedulers.Schedulers;
@@ -69,13 +76,19 @@ public class Livebox<RemoteData, Output> {
     };
 
     private Map<Class<?>, Converter<Output>> mConvertersMap = new HashMap<>();
+    private Optional<ConvertersFactory<Output>> mConverterFactory = Optional.empty();
 
-    private Optional<ConvertersFactory<Output>> mConverterFactory;
+    private List<DataSourceFactory<RemoteData>> mDataSourceFactoryList = new ArrayList<>();
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private Livebox(BoxKey key) {
         ObjectHelper.requireNonNull(key, "Key cannot be null");
         mKey = key;
+
+        LiveboxDataSourceFactory<RemoteData, Output> factory = new LiveboxDataSourceFactory<>();
+        factory.setCacheKey(mKey.key()).setTargetClass(Integer.class);
+        mDataSourceFactoryList.add(factory);
+
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -121,6 +134,23 @@ public class Livebox<RemoteData, Output> {
         mLocalSources.add(source);
         return this;
     }
+
+    public Livebox<RemoteData, Output> addLocalSource(int dataSourceId) {
+        for (DataSourceFactory<RemoteData> factory : mDataSourceFactoryList) {
+            Optional<LocalDataSource<RemoteData, ?>> localDataSource = factory.get(dataSourceId);
+            if (localDataSource.isPresent()) {
+                addLocalSource(localDataSource.get());
+                return this;
+            }
+        }
+        return this;
+    }
+
+    public Livebox<RemoteData, Output> addLocalSourceFactory(DataSourceFactory<RemoteData> dataSourceFactory) {
+        mDataSourceFactoryList.add(dataSourceFactory);
+        return this;
+    }
+
 
     public Livebox<RemoteData, Output> addConverter(Class<?> aClass, Converter<Output> converter) {
         mConvertersMap.put(aClass, converter);
@@ -267,6 +297,17 @@ public class Livebox<RemoteData, Output> {
         return asObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public LiveData<Output> asLiveData() {
+        return new LiveDataAdapter<Output>().adapt(asObservable());
+    }
+
+    public <T> T as(@NonNull ObservableAdapter<Output, T> adapter) {
+        if (adapter == null) {
+            throw new IllegalArgumentException("No adapter found");
+        }
+        return adapter.adapt(asObservable());
     }
 
     // A Key that uses a single string as identifier
