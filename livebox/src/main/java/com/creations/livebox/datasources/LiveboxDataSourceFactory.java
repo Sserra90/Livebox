@@ -1,43 +1,35 @@
 package com.creations.livebox.datasources;
 
 import com.creations.livebox.util.Optional;
-import com.creations.livebox.validator.DataValidator;
+
+import java.lang.reflect.Type;
 
 /**
  * @author Sérgio Serra on 26/08/2018.
  * Criations
  * sergioserra99@gmail.com
  */
-public final class LiveboxDataSourceFactory<I, O> implements DataSourceFactory<I> {
+public final class LiveboxDataSourceFactory<I> implements DataSourceFactory<I> {
 
     private String mCacheKey;
-    private Class<?> mTargetClass;
-    private DataValidator<O> mDataValidator;
+    private Type mTargetType;
 
-    public LiveboxDataSourceFactory() {
-    }
-
-    public LiveboxDataSourceFactory<I, O> setCacheKey(String cacheKey) {
+    public LiveboxDataSourceFactory<I> setCacheKey(String cacheKey) {
         this.mCacheKey = cacheKey;
         return this;
     }
 
-    public LiveboxDataSourceFactory<I, O> setTargetClass(Class<?> targetClass) {
-        this.mTargetClass = targetClass;
-        return this;
-    }
-
-    public LiveboxDataSourceFactory<I, O> setDataValidator(DataValidator<O> dataValidator) {
-        this.mDataValidator = dataValidator;
+    public LiveboxDataSourceFactory<I> setType(Type type) {
+        this.mTargetType = type;
         return this;
     }
 
     @Override
-    public Optional<LocalDataSource<I, ?>> get(int id) {
-        LocalDataSource<I, ?> dataSource = null;
+    public <T> Optional<LocalDataSource<I, T>> get(int id) {
+        LocalDataSource<I, T> dataSource = null;
         switch (id) {
             case Sources.DISK_LRU:
-                dataSource = DiskLruDataSource.create(mCacheKey, mTargetClass, Optional.ofNullable(mDataValidator));
+                dataSource = DiskLruDataSource.create(mCacheKey, mTargetType);
                 break;
         }
         return Optional.ofNullable(dataSource);

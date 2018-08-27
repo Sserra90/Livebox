@@ -15,10 +15,11 @@ import com.creations.app.api.UsersRes;
 import com.creations.app.entities.Users;
 import com.creations.livebox.Livebox;
 import com.creations.livebox.datasources.DiskLruDataSource;
+import com.creations.livebox.datasources.LiveboxDataSourceFactory.Sources;
 import com.creations.livebox.util.Objects;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.util.Utils;
-import com.creations.livebox.validator.DataValidator;
+import com.creations.livebox.validator.Validator;
 
 import java.io.File;
 
@@ -60,26 +61,23 @@ public class MainActivity extends AppCompatActivity {
     private void getUsers() {
         final GithubService service = Api.getInstance().getGithubService();
 
-        Optional<DataValidator<UsersRes>> diskValidator = Optional.of(item -> {
-            Log.d(TAG, "Validating data of disk lru source");
-            return Objects.nonNull(item) && !item.getItems().isEmpty();
-        });
+        Validator<UsersRes> diskValidator = item -> Objects.nonNull(item) && !item.getItems().isEmpty();
 
-        Observable<Users> usersObservable = Livebox
-                .<UsersRes, Users>build(new Livebox.BoxKey("get_users"))
-                .remoteSource(service::getUserList)
-                //.addLocalSource(Sources.MEMORY_LRU)
-                //.addLocalSource(Sources.DISK_LRU)
+        //TypeToken<List<UsersRes>> token = new TypeToken<List<UsersRes>>() {};
+        Livebox<UsersRes, Users> box = new Livebox<>("get_users");
+        Observable<Users> usersObservable = box
+                .fetch(service::getUserList, UsersRes.class)
+                .addSource(Sources.DISK_LRU, diskValidator)
                 /*.addLocalSourceFactory(new DataSourceFactory<UsersRes>() {
                     @Override
-                    public Optional<LocalDataSource<UsersRes, ?>> get(int id) {
-                        return Optional.of(DiskLruDataSource.<UsersRes, Users>create("", Integer.class, Optional.ofNullable(null)));
+                    public <T> Optional<LocalDataSource<UsersRes, T>> get(int id) {
+                        return Optional.of(DiskLruDataSource.create("", Integer.class));
                     }
                 })*/
-                .addLocalSource(DiskLruDataSource.create("get_users", UsersRes.class, diskValidator))
+                //.addSource(DiskLruDataSource.create("get_users", UsersRes.class), diskValidator)
                 .addConverter(UsersRes.class, data -> Optional.of(Users.fromUsersRes((UsersRes) data)))
                 .retryOnFailure()
-                .keepDataFresh()
+                //.keepDataFresh()
                 .asAndroidObservable();
 
         //liveData.observe(this, users -> Log.d(TAG, "UsersRes: " + users));

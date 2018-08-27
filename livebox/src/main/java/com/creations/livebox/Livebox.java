@@ -14,7 +14,10 @@ import com.creations.livebox.datasources.RemoteDataSource;
 import com.creations.livebox.rx.Transformers;
 import com.creations.livebox.util.Objects;
 import com.creations.livebox.util.Optional;
+import com.creations.livebox.validator.Validator;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,9 +58,12 @@ public class Livebox<RemoteData, Output> {
     // Indicates if we should retry the remote data source request if an error occurs
     private boolean mRetryOnFailure = false;
     // Remote data source
-    private RemoteDataSource<Observable<RemoteData>> mRemoteDataSource;
+    private RemoteDataSource<RemoteData> mRemoteDataSource;
     // Local data sources
     private List<LocalDataSource<RemoteData, ?>> mLocalSources = new ArrayList<>();
+    // Stores validator for each store instance
+    private Map<LocalDataSource<RemoteData, ?>, Validator> mValidators = new HashMap<>();
+
     // Transformer that adds share functionality to an observable
     private ObservableTransformer<Output, Output> withShare = new ObservableTransformer<Output, Output>() {
         @Override
@@ -81,14 +87,9 @@ public class Livebox<RemoteData, Output> {
     private List<DataSourceFactory<RemoteData>> mDataSourceFactoryList = new ArrayList<>();
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private Livebox(BoxKey key) {
+    public Livebox(String key) {
         ObjectHelper.requireNonNull(key, "Key cannot be null");
-        mKey = key;
-
-        LiveboxDataSourceFactory<RemoteData, Output> factory = new LiveboxDataSourceFactory<>();
-        factory.setCacheKey(mKey.key()).setTargetClass(Integer.class);
-        mDataSourceFactoryList.add(factory);
-
+        mKey = new BoxKey(key);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -96,13 +97,6 @@ public class Livebox<RemoteData, Output> {
         ObjectHelper.requireNonNull(diskCacheConfig, "Cache config cannot be null");
         DiskLruDataSource.setConfig(diskCacheConfig);
         mInit = true;
-    }
-
-    public static <RemoteSourceResult, Output> Livebox<RemoteSourceResult, Output> build(BoxKey key) {
-        if (!mInit) {
-            throw new IllegalStateException("Init must be called before using Livebox");
-        }
-        return new Livebox<>(key);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -125,22 +119,37 @@ public class Livebox<RemoteData, Output> {
         return this;
     }
 
-    public Livebox<RemoteData, Output> remoteSource(RemoteDataSource<Observable<RemoteData>> source) {
+    public Livebox<RemoteData, Output> fetch(RemoteDataSource<RemoteData> source, TypeToken type) {
+        fetch(source, type.getType());
+        return this;
+    }
+
+    public Livebox<RemoteData, Output> fetch(RemoteDataSource<RemoteData> source, Type type) {
         mRemoteDataSource = source;
+
+        LiveboxDataSourceFactory<RemoteData> factory = new LiveboxDataSourceFactory<>();
+        factory.setCacheKey(mKey.key()).setType(type);
+        mDataSourceFactoryList.add(factory);
+
         return this;
     }
 
-    public Livebox<RemoteData, Output> addLocalSource(LocalDataSource<RemoteData, ?> source) {
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public <T> Livebox<RemoteData, Output> addSource(LocalDataSource<RemoteData, T> source, Validator<T> validator) {
+        ObjectHelper.requireNonNull(validator, "Validator cannot be null");
         mLocalSources.add(source);
+        mValidators.put(source, validator);
         return this;
     }
 
-    public Livebox<RemoteData, Output> addLocalSource(int dataSourceId) {
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public <T> Livebox<RemoteData, Output> addSource(int dataSourceId, Validator<T> validator) {
+        ObjectHelper.requireNonNull(validator, "Validator cannot be null");
         for (DataSourceFactory<RemoteData> factory : mDataSourceFactoryList) {
-            Optional<LocalDataSource<RemoteData, ?>> localDataSource = factory.get(dataSourceId);
+            Optional<LocalDataSource<RemoteData, T>> localDataSource = factory.get(dataSourceId);
             if (localDataSource.isPresent()) {
-                addLocalSource(localDataSource.get());
-                return this;
+                addSource(localDataSource.get(), validator);
+                break;
             }
         }
         return this;
@@ -150,7 +159,6 @@ public class Livebox<RemoteData, Output> {
         mDataSourceFactoryList.add(dataSourceFactory);
         return this;
     }
-
 
     public Livebox<RemoteData, Output> addConverter(Class<?> aClass, Converter<Output> converter) {
         mConvertersMap.put(aClass, converter);
@@ -167,16 +175,20 @@ public class Livebox<RemoteData, Output> {
         Logger.d(TAG, "loadFromLocalSource() called");
 
         if (mLocalSources.isEmpty()) {
-            throw new IllegalStateException("No local source found");
+            throw new IllegalStateException("No local sources found");
         }
 
         return Observable.fromIterable(mLocalSources)
-                .map((Function<LocalDataSource<RemoteData, ?>, Optional<?>>) source -> {
+                .map(source -> {
                     Logger.d(TAG, "---> Hit source " + source);
-                    return source.read();
+                    final Optional<?> data = source.read();
+                    @SuppressWarnings("unchecked")
+                    boolean isValid = data.isPresent() && mValidators.get(source).validate(data.get());
+                    Logger.d(TAG, "---> Data from source " + source + " is valid: " + isValid);
+                    return isValid ? data : Optional.empty();
                 })
                 .filter(Optional::isPresent)
-                .first(Optional.ofNullable(null))
+                .first(Optional.empty())
                 .doOnSuccess(optional -> {
                     if (optional.isPresent()) {
                         Logger.d(TAG, "---> Found valid data");
@@ -246,7 +258,7 @@ public class Livebox<RemoteData, Output> {
 
     public Observable<Output> asObservable() {
 
-        // Check if we have an in-flight request ongoing.
+        // Check if we have a request ongoing.
         // If we do return the Observable so the caller can subscribe to it.
         if (inFlightRequests.get(mKey) != null) {
             Logger.d(TAG, "---> We have a in-flight request for key: " + mKey);
@@ -299,27 +311,29 @@ public class Livebox<RemoteData, Output> {
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
+    // Convenience method that returns a live data instance.
     public LiveData<Output> asLiveData() {
         return new LiveDataAdapter<Output>().adapt(asObservable());
     }
 
+    // Uses passed adapter to adapt the result observable.
     public <T> T as(@NonNull ObservableAdapter<Output, T> adapter) {
         if (adapter == null) {
-            throw new IllegalArgumentException("No adapter found");
+            throw new IllegalArgumentException("Adapter cannot be null");
         }
         return adapter.adapt(asObservable());
     }
 
     // A Key that uses a single string as identifier
     // Key must match the regex [a-z0-9_-]{1,120}.
-    public static class BoxKey {
+    private static class BoxKey {
 
         private static final String STRING_KEY_PATTERN = "[a-z0-9_-]{1,120}";
         private static final Pattern LEGAL_KEY_PATTERN = Pattern.compile(STRING_KEY_PATTERN);
 
         private String mKey;
 
-        public BoxKey(String key) {
+        BoxKey(String key) {
             mKey = validateKey(key);
         }
 

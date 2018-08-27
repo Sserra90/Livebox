@@ -4,7 +4,7 @@ import com.creations.livebox.Logger;
 import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.serializers.Serializer;
 import com.creations.livebox.util.Optional;
-import com.creations.livebox.validator.DataValidator;
+import com.creations.livebox.validator.Validator;
 import com.instagram.igdiskcache.EditorOutputStream;
 import com.instagram.igdiskcache.IgDiskCache;
 import com.instagram.igdiskcache.OptionalStream;
@@ -33,22 +33,17 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
     private String mKey;
     private LiveboxDiskCache mDiskCache;
     private Serializer<I> mSerializer;
-    private Optional<DataValidator<O>> mValidator;
 
 
-    private DiskLruDataSource(String key, Type type, Optional<DataValidator<O>> validator) {
+    private DiskLruDataSource(String key, Type type) {
         mKey = key;
         mDiskCache = LiveboxDiskCache.getInstance(mDiskCacheConfig);
         mSerializer = LiveboxGsonSerializer.create(type);
-        mValidator = validator;
     }
 
-    public static <I, O> DiskLruDataSource<I, O> create(String key,
-                                                        Type type,
-                                                        Optional<DataValidator<O>> validator) {
-        return new DiskLruDataSource<>(key, type, validator);
+    public static <I, O> DiskLruDataSource<I, O> create(String key, Type type) {
+        return new DiskLruDataSource<>(key, type);
     }
-
 
     public static void setConfig(Config config) {
         DiskLruDataSource.mDiskCacheConfig = config;
@@ -61,11 +56,10 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
         if (iis.isPresent()) {
             //noinspection unchecked
             O data = (O) mSerializer.deserialize(bufferedSource(iis.get()));
-            return Optional.ofNullable(isValid(data) ? data : null);
+            return Optional.ofNullable(data);
         }
         return Optional.empty();
     }
-
 
     @Override
     public void save(I input) throws IllegalStateException {
@@ -88,10 +82,6 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
             e.printStackTrace();
         }
         Logger.d(TAG, "---> Success data saved in diskLruDataSource.");
-    }
-
-    private boolean isValid(O input) {
-        return mValidator.isPresent() && mValidator.get().isValid(input);
     }
 
     @Override

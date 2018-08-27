@@ -5,6 +5,6 @@ package com.creations.livebox.validator;
  * Criations
  * sergioserra99@gmail.com
  */
-public interface DataValidator<T> {
-    boolean isValid(T item);
+public interface Validator<R> {
+    boolean validate(R item);
 }
