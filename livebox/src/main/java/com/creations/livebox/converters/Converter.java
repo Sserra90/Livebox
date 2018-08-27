@@ -9,7 +9,7 @@ import io.reactivex.annotations.NonNull;
  * Criations
  * sergioserra99@gmail.com
  */
-public interface Converter<T> {
+public interface Converter<R, T> {
     @NonNull
-    Optional<T> convert(Object o) throws Exception;
+    Optional<T> convert(R o) throws Exception;
 }

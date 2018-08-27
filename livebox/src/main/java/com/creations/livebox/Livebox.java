@@ -81,7 +81,7 @@ public class Livebox<RemoteData, Output> {
         }
     };
 
-    private Map<Class<?>, Converter<Output>> mConvertersMap = new HashMap<>();
+    private Map<Class<?>, Converter<?, Output>> mConvertersMap = new HashMap<>();
     private Optional<ConvertersFactory<Output>> mConverterFactory = Optional.empty();
 
     private List<DataSourceFactory<RemoteData>> mDataSourceFactoryList = new ArrayList<>();
@@ -160,7 +160,7 @@ public class Livebox<RemoteData, Output> {
         return this;
     }
 
-    public Livebox<RemoteData, Output> addConverter(Class<?> aClass, Converter<Output> converter) {
+    public <T> Livebox<RemoteData, Output> addConverter(Class<T> aClass, Converter<T, Output> converter) {
         mConvertersMap.put(aClass, converter);
         return this;
     }
@@ -215,29 +215,30 @@ public class Livebox<RemoteData, Output> {
                 .map(this::convert);
     }
 
-    private Output convert(Object o) throws Exception {
+    @SuppressWarnings("unchecked")
+    private <T> Output convert(T data) throws Exception {
 
-        Converter<Output> converter;
+        Converter<T, Output> converter;
         if (mConverterFactory.isPresent()) {
             Logger.d(TAG, "---> Using converter factory");
-            converter = mConverterFactory.get().get(o.getClass());
+            converter = mConverterFactory.get().get((Class<T>) data.getClass());
         } else {
-            converter = mConvertersMap.get(o.getClass());
+            converter = (Converter<T, Output>) mConvertersMap.get(data.getClass());
         }
 
         if (Objects.nonNull(converter)) {
-            Optional<Output> data = converter.convert(o);
-            Logger.d(TAG, "---> Converter found for type: " + o.getClass());
-            if (data.isAbsent()) {
-                throw new IllegalStateException("Converter: " + converter + "returned null for: " + o);
+            Optional<Output> convertedData = converter.convert(data);
+            Logger.d(TAG, "---> Converter found for type: " + data.getClass());
+            if (convertedData.isAbsent()) {
+                throw new IllegalStateException("Converter: " + converter + "returned null for: " + data);
             }
-            return data.get();
+            return convertedData.get();
         }
 
         // If no converter was found, we try casting because remoteData type parameter
         // could have the same type as output type parameter, in that case no converter is needed.
         //noinspection unchecked
-        return (Output) o;
+        return (Output) data;
     }
 
     private void passRemoteDataToLocalSources(RemoteData data) {

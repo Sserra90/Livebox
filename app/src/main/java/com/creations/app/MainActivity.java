@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })*/
                 //.addSource(DiskLruDataSource.create("get_users", UsersRes.class), diskValidator)
-                .addConverter(UsersRes.class, data -> Optional.of(Users.fromUsersRes((UsersRes) data)))
+                .addConverter(UsersRes.class, usersRes -> Optional.of(Users.fromUsersRes(usersRes)))
                 .retryOnFailure()
                 //.keepDataFresh()
                 .asAndroidObservable();

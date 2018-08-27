@@ -5,6 +5,6 @@ package com.creations.livebox.converters;
  * Criations
  * sergioserra99@gmail.com
  */
-public interface ConvertersFactory<T> {
-    Converter<T> get(Class<?> aClass);
+public interface ConvertersFactory<R> {
+    <T> Converter<T, R> get(Class<T> aClass);
 }
