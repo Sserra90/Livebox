@@ -2,7 +2,7 @@ package com.creations.livebox;
 
 import android.os.Looper;
 
-import com.creations.livebox.datasources.DiskLruDataSource;
+import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.serializers.Serializer;
 

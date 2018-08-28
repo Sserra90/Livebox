@@ -1,6 +1,7 @@
-package com.creations.livebox.datasources;
+package com.creations.livebox.datasources.disk;
 
 import com.creations.livebox.Logger;
+import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.serializers.Serializer;
 import com.creations.livebox.util.Optional;

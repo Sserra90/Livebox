@@ -1,5 +1,6 @@
-package com.creations.livebox.datasources;
+package com.creations.livebox.datasources.factory;
 
+import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.util.Optional;
 
 /**

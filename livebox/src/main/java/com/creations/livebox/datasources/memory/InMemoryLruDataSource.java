@@ -1,8 +1,9 @@
-package com.creations.livebox.datasources;
+package com.creations.livebox.datasources.memory;
 
 import android.support.v4.util.LruCache;
 import android.util.Log;
 
+import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.util.Optional;
 
 /**
