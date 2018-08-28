@@ -126,11 +126,7 @@ public class Livebox<RemoteData, Output> {
 
     public Livebox<RemoteData, Output> fetch(RemoteDataSource<RemoteData> source, Type type) {
         mRemoteDataSource = source;
-
-        LiveboxDataSourceFactory<RemoteData> factory = new LiveboxDataSourceFactory<>();
-        factory.setCacheKey(mKey.key()).setType(type);
-        mDataSourceFactoryList.add(factory);
-
+        mDataSourceFactoryList.add(new LiveboxDataSourceFactory<>(type));
         return this;
     }
 
@@ -181,7 +177,7 @@ public class Livebox<RemoteData, Output> {
         return Observable.fromIterable(mLocalSources)
                 .map(source -> {
                     Logger.d(TAG, "---> Hit source " + source);
-                    final Optional<?> data = source.read();
+                    final Optional<?> data = source.read(mKey.key());
                     @SuppressWarnings("unchecked")
                     boolean isValid = data.isPresent() && mValidators.get(source).validate(data.get());
                     Logger.d(TAG, "---> Data from source " + source + " is valid: " + isValid);
@@ -246,7 +242,7 @@ public class Livebox<RemoteData, Output> {
         Logger.d(TAG, "Pass fresh data to local sources");
         for (LocalDataSource<RemoteData, ?> localSource : mLocalSources) {
             Logger.d(TAG, "---> Saving fresh data in: " + localSource);
-            localSource.save(data);
+            localSource.save(mKey.key(), data);
         }
     }
 

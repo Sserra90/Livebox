@@ -8,8 +8,8 @@ import com.creations.livebox.util.Optional;
  * sergioserra99@gmail.com
  */
 public interface LocalDataSource<I, T> {
-    Optional<T> read();
+    Optional<T> read(String key);
 
-    void save(I input);
+    void save(String key, I input);
 
 }

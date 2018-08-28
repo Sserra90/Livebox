@@ -11,17 +11,10 @@ import java.lang.reflect.Type;
  */
 public final class LiveboxDataSourceFactory<I> implements DataSourceFactory<I> {
 
-    private String mCacheKey;
     private Type mTargetType;
 
-    public LiveboxDataSourceFactory<I> setCacheKey(String cacheKey) {
-        this.mCacheKey = cacheKey;
-        return this;
-    }
-
-    public LiveboxDataSourceFactory<I> setType(Type type) {
+    public LiveboxDataSourceFactory(Type type) {
         this.mTargetType = type;
-        return this;
     }
 
     @Override
@@ -29,7 +22,11 @@ public final class LiveboxDataSourceFactory<I> implements DataSourceFactory<I> {
         LocalDataSource<I, T> dataSource = null;
         switch (id) {
             case Sources.DISK_LRU:
-                dataSource = DiskLruDataSource.create(mCacheKey, mTargetType);
+                dataSource = DiskLruDataSource.create(mTargetType);
+                break;
+            case Sources.MEMORY_LRU:
+                //noinspection unchecked
+                dataSource = (LocalDataSource<I, T>) InMemoryLruDataSource.create();
                 break;
         }
         return Optional.ofNullable(dataSource);

@@ -23,8 +23,6 @@ import com.creations.livebox.validator.Validator;
 
 import java.io.File;
 
-import io.reactivex.Observable;
-
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
@@ -32,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String DISK_CACHE_DIR = "livebox_disk_lru_cache";
     private static final int DEFAULT_DISK_CACHE_SIZE = 1024 * 1024 * 100; // 100MB
     private static final int DEFAULT_DISK_CACHE_SIZE_PERCENT = 10; // 10% of free disk space
+
+    private Livebox<UsersRes, Users> usersBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,18 +55,16 @@ public class MainActivity extends AppCompatActivity {
         );
         Livebox.init(diskCacheConfig);
 
-    }
-
-    @SuppressLint("CheckResult")
-    private void getUsers() {
         final GithubService service = Api.getInstance().getGithubService();
 
         Validator<UsersRes> diskValidator = item -> Objects.nonNull(item) && !item.getItems().isEmpty();
+        Validator<UsersRes> memoryValidator = item -> Objects.nonNull(item) && !item.getItems().isEmpty();
 
         //TypeToken<List<UsersRes>> token = new TypeToken<List<UsersRes>>() {};
-        Livebox<UsersRes, Users> box = new Livebox<>("get_users");
-        Observable<Users> usersObservable = box
+        usersBox = new Livebox<>("get_users");
+        usersBox
                 .fetch(service::getUserList, UsersRes.class)
+                .addSource(Sources.MEMORY_LRU, memoryValidator)
                 .addSource(Sources.DISK_LRU, diskValidator)
                 /*.addLocalSourceFactory(new DataSourceFactory<UsersRes>() {
                     @Override
@@ -76,12 +74,17 @@ public class MainActivity extends AppCompatActivity {
                 })*/
                 //.addSource(DiskLruDataSource.create("get_users", UsersRes.class), diskValidator)
                 .addConverter(UsersRes.class, usersRes -> Optional.of(Users.fromUsersRes(usersRes)))
-                .retryOnFailure()
+                .retryOnFailure();
                 //.keepDataFresh()
-                .asAndroidObservable();
+
+    }
+
+    @SuppressLint("CheckResult")
+    private void getUsers() {
 
         //liveData.observe(this, users -> Log.d(TAG, "UsersRes: " + users));
-        usersObservable.subscribe(users -> Log.d(TAG, "UsersRes: " + users), Throwable::printStackTrace);
+        usersBox.asAndroidObservable()
+                .subscribe(users -> Log.d(TAG, "UsersRes: " + users), Throwable::printStackTrace);
 
     }
 
