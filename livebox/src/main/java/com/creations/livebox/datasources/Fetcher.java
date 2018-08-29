@@ -7,6 +7,6 @@ import io.reactivex.Observable;
  * Criations
  * sergioserra99@gmail.com
  */
-public interface RemoteDataSource<T> {
+public interface Fetcher<T> {
     Observable<T> fetch();
 }

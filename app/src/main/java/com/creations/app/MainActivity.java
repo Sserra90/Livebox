@@ -14,6 +14,7 @@ import com.creations.app.api.GithubService;
 import com.creations.app.api.UsersRes;
 import com.creations.app.entities.Users;
 import com.creations.livebox.Livebox;
+import com.creations.livebox.LiveboxBuilder;
 import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
 import com.creations.livebox.util.Objects;
@@ -61,8 +62,8 @@ public class MainActivity extends AppCompatActivity {
         Validator<UsersRes> memoryValidator = item -> Objects.nonNull(item) && !item.getItems().isEmpty();
 
         //TypeToken<List<UsersRes>> token = new TypeToken<List<UsersRes>>() {};
-        usersBox = new Livebox<>("get_users");
-        usersBox
+        usersBox = new LiveboxBuilder<UsersRes, Users>()
+                .withKey("get_users")
                 .fetch(service::getUserList, UsersRes.class)
                 .addSource(Sources.MEMORY_LRU, memoryValidator)
                 .addSource(Sources.DISK_LRU, diskValidator)
@@ -74,8 +75,8 @@ public class MainActivity extends AppCompatActivity {
                 })*/
                 //.addSource(DiskLruDataSource.create("get_users", UsersRes.class), diskValidator)
                 .addConverter(UsersRes.class, usersRes -> Optional.of(Users.fromUsersRes(usersRes)))
-                .retryOnFailure();
-                //.keepDataFresh()
+                .retryOnFailure()
+                .build();
 
     }
 

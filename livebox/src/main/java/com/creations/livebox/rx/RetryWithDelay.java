@@ -1,15 +1,9 @@
 package com.creations.livebox.rx;
 
-import android.util.Log;
-
-import com.creations.livebox.Logger;
-
-import org.reactivestreams.Publisher;
+import com.creations.livebox.util.Logger;
 
 import java.util.concurrent.TimeUnit;
 
-import io.reactivex.Flowable;
-import io.reactivex.FlowableTransformer;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.functions.Function;

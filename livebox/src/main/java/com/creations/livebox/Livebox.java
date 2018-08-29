@@ -6,20 +6,15 @@ import com.creations.livebox.adapters.LiveDataAdapter;
 import com.creations.livebox.adapters.ObservableAdapter;
 import com.creations.livebox.converters.Converter;
 import com.creations.livebox.converters.ConvertersFactory;
-import com.creations.livebox.datasources.factory.DataSourceFactory;
-import com.creations.livebox.datasources.disk.DiskLruDataSource;
-import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory;
+import com.creations.livebox.datasources.Fetcher;
 import com.creations.livebox.datasources.LocalDataSource;
-import com.creations.livebox.datasources.RemoteDataSource;
+import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.rx.Transformers;
+import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Objects;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.Validator;
-import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,36 +35,48 @@ import io.reactivex.schedulers.Schedulers;
  * Criations
  * sergioserra99@gmail.com
  */
-public class Livebox<RemoteData, Output> {
+public class Livebox<I, O> {
 
     private static final String TAG = "Livebox";
+
     // Keeps a record of in-flight requests.
     private static final ConcurrentHashMap<BoxKey, Observable> inFlightRequests = new ConcurrentHashMap<>();
-    // Is instance initialized
-    private static boolean mInit = false;
 
     // A unique key that identifies this Livebox, used to keep track of in-flight requests.
     // Also this key is used to save and retrieve entries in cache
     private BoxKey mKey;
+
     // Indicates if we should make a fetch to remote data source even if the local data is still valid.
-    private boolean mRefresh = false;
+    private boolean mRefresh;
+
     // Indicates if we should ignore disk cache
-    private boolean mIgnoreDiskCache = false;
+    private boolean mIgnoreDiskCache;
+
     // Indicates if we should retry the remote data source request if an error occurs
-    private boolean mRetryOnFailure = false;
+    private boolean mRetryOnFailure;
+
     // Remote data source
-    private RemoteDataSource<RemoteData> mRemoteDataSource;
+    private Fetcher<I> mFetcher;
+
     // Local data sources
-    private List<LocalDataSource<RemoteData, ?>> mLocalSources = new ArrayList<>();
+    private List<LocalDataSource<I, ?>> mLocalSources;
+
     // Stores validator for each store instance
-    private Map<LocalDataSource<RemoteData, ?>, Validator> mValidators = new HashMap<>();
+    private Map<LocalDataSource<I, ?>, Validator> mValidators;
+
+    // Keeps a mapping between a class types and a Converters.
+    // Converter are used to convert the data read from data sources to the desired output.
+    private Map<Class<?>, Converter<?, O>> mConvertersMap;
+
+    // Converters factory, given a class type returns the converter instance to use.
+    private Optional<ConvertersFactory<O>> mConverterFactory;
 
     // Transformer that adds share functionality to an observable
-    private ObservableTransformer<Output, Output> withShare = new ObservableTransformer<Output, Output>() {
+    private ObservableTransformer<O, O> withShare = new ObservableTransformer<O, O>() {
         @Override
-        public ObservableSource<Output> apply(Observable<Output> upstream) {
+        public ObservableSource<O> apply(Observable<O> upstream) {
             Logger.d(TAG, "Compose with share");
-            Observable<Output> observable = upstream
+            Observable<O> observable = upstream
                     .doOnTerminate(() -> {
                         Logger.d(TAG, "Remove from inFlightRequests with key: " + mKey);
                         inFlightRequests.remove(mKey);
@@ -81,91 +88,28 @@ public class Livebox<RemoteData, Output> {
         }
     };
 
-    private Map<Class<?>, Converter<?, Output>> mConvertersMap = new HashMap<>();
-    private Optional<ConvertersFactory<Output>> mConverterFactory = Optional.empty();
+    Livebox(String key, boolean refresh, boolean ignoreDiskCache, boolean retryOnFailure,
+            Fetcher<I> fetcher, List<LocalDataSource<I, ?>> localSources,
+            Map<LocalDataSource<I, ?>, Validator> validators,
+            Map<Class<?>, Converter<?, O>> convertersMap,
+            Optional<ConvertersFactory<O>> converterFactory) {
 
-    private List<DataSourceFactory<RemoteData>> mDataSourceFactoryList = new ArrayList<>();
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public Livebox(String key) {
-        ObjectHelper.requireNonNull(key, "Key cannot be null");
-        mKey = new BoxKey(key);
+        this.mKey = new BoxKey(key);
+        this.mRefresh = refresh;
+        this.mIgnoreDiskCache = ignoreDiskCache;
+        this.mRetryOnFailure = retryOnFailure;
+        this.mFetcher = fetcher;
+        this.mLocalSources = localSources;
+        this.mValidators = validators;
+        this.mConvertersMap = convertersMap;
+        this.mConverterFactory = converterFactory;
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void init(DiskLruDataSource.Config diskCacheConfig) {
         ObjectHelper.requireNonNull(diskCacheConfig, "Cache config cannot be null");
         DiskLruDataSource.setConfig(diskCacheConfig);
-        mInit = true;
     }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void checkPreconditions() {
-    }
-
-
-    public Livebox<RemoteData, Output> keepDataFresh() {
-        mRefresh = true;
-        return this;
-    }
-
-    public Livebox<RemoteData, Output> ignoreCache(boolean ignore) {
-        mIgnoreDiskCache = ignore;
-        return this;
-    }
-
-    public Livebox<RemoteData, Output> retryOnFailure() {
-        mRetryOnFailure = true;
-        return this;
-    }
-
-    public Livebox<RemoteData, Output> fetch(RemoteDataSource<RemoteData> source, TypeToken type) {
-        fetch(source, type.getType());
-        return this;
-    }
-
-    public Livebox<RemoteData, Output> fetch(RemoteDataSource<RemoteData> source, Type type) {
-        mRemoteDataSource = source;
-        mDataSourceFactoryList.add(new LiveboxDataSourceFactory<>(type));
-        return this;
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public <T> Livebox<RemoteData, Output> addSource(LocalDataSource<RemoteData, T> source, Validator<T> validator) {
-        ObjectHelper.requireNonNull(validator, "Validator cannot be null");
-        mLocalSources.add(source);
-        mValidators.put(source, validator);
-        return this;
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public <T> Livebox<RemoteData, Output> addSource(int dataSourceId, Validator<T> validator) {
-        ObjectHelper.requireNonNull(validator, "Validator cannot be null");
-        for (DataSourceFactory<RemoteData> factory : mDataSourceFactoryList) {
-            Optional<LocalDataSource<RemoteData, T>> localDataSource = factory.get(dataSourceId);
-            if (localDataSource.isPresent()) {
-                addSource(localDataSource.get(), validator);
-                break;
-            }
-        }
-        return this;
-    }
-
-    public Livebox<RemoteData, Output> addLocalSourceFactory(DataSourceFactory<RemoteData> dataSourceFactory) {
-        mDataSourceFactoryList.add(dataSourceFactory);
-        return this;
-    }
-
-    public <T> Livebox<RemoteData, Output> addConverter(Class<T> aClass, Converter<T, Output> converter) {
-        mConvertersMap.put(aClass, converter);
-        return this;
-    }
-
-    public Livebox<RemoteData, Output> addConverterFactory(ConvertersFactory<Output> converterFactory) {
-        mConverterFactory = Optional.ofNullable(converterFactory);
-        return this;
-    }
-
 
     private Observable<Optional<?>> loadFromLocalSource() {
         Logger.d(TAG, "loadFromLocalSource() called");
@@ -196,34 +140,34 @@ public class Livebox<RemoteData, Output> {
     }
 
     // Maps data from local data source type -> output type
-    private Observable<Output> returnLocalData(Object localData) throws Exception {
+    private Observable<O> returnLocalData(Object localData) throws Exception {
         Logger.d(TAG, "returnLocalData() called with: localData = [" + localData + "]");
         return Observable.just(convert(localData));
     }
 
     // Fetch data from remote data source and pass new data to local sources.
-    private Observable<Output> fetchFromRemoteDataSourceAndSave() {
+    private Observable<O> fetchFromRemoteDataSourceAndSave() {
         Logger.d(TAG, "fetchFromRemoteDataSourceAndSave() called");
         return Observable
-                .defer(mRemoteDataSource::fetch)
+                .defer(mFetcher::fetch)
                 .doOnNext(this::passRemoteDataToLocalSources)
                 .compose(Transformers.withRetry(mRetryOnFailure))
                 .map(this::convert);
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Output convert(T data) throws Exception {
+    private <T> O convert(T data) throws Exception {
 
-        Converter<T, Output> converter;
+        Converter<T, O> converter;
         if (mConverterFactory.isPresent()) {
             Logger.d(TAG, "---> Using converter factory");
             converter = mConverterFactory.get().get((Class<T>) data.getClass());
         } else {
-            converter = (Converter<T, Output>) mConvertersMap.get(data.getClass());
+            converter = (Converter<T, O>) mConvertersMap.get(data.getClass());
         }
 
         if (Objects.nonNull(converter)) {
-            Optional<Output> convertedData = converter.convert(data);
+            Optional<O> convertedData = converter.convert(data);
             Logger.d(TAG, "---> Converter found for type: " + data.getClass());
             if (convertedData.isAbsent()) {
                 throw new IllegalStateException("Converter: " + converter + "returned null for: " + data);
@@ -234,33 +178,34 @@ public class Livebox<RemoteData, Output> {
         // If no converter was found, we try casting because remoteData type parameter
         // could have the same type as output type parameter, in that case no converter is needed.
         //noinspection unchecked
-        return (Output) data;
+        return (O) data;
     }
 
-    private void passRemoteDataToLocalSources(RemoteData data) {
+    private void passRemoteDataToLocalSources(I data) {
         Logger.d(TAG, "\n");
         Logger.d(TAG, "Pass fresh data to local sources");
-        for (LocalDataSource<RemoteData, ?> localSource : mLocalSources) {
+        for (LocalDataSource<I, ?> localSource : mLocalSources) {
             Logger.d(TAG, "---> Saving fresh data in: " + localSource);
             localSource.save(mKey.key(), data);
         }
     }
 
-    private Observable<Output> fetchFromRemoteDataSource() {
-        return mRemoteDataSource.fetch()
+    private Observable<O> fetchFromRemoteDataSource() {
+        return mFetcher.fetch()
                 .map(this::convert)
                 .compose(Transformers.withRetry(mRetryOnFailure))
                 .compose(withShare);
     }
 
-    public Observable<Output> asObservable() {
+    @SuppressWarnings("WeakerAccess")
+    public Observable<O> asObservable() {
 
         // Check if we have a request ongoing.
         // If we do return the Observable so the caller can subscribe to it.
         if (inFlightRequests.get(mKey) != null) {
             Logger.d(TAG, "---> We have a in-flight request for key: " + mKey);
             //noinspection unchecked
-            return (Observable<Output>) inFlightRequests.get(mKey);
+            return (Observable<O>) inFlightRequests.get(mKey);
         }
 
         // If ignore disk cache is true always hit remote data source
@@ -270,8 +215,8 @@ public class Livebox<RemoteData, Output> {
         }
 
         // Get data from local source.
-        Observable<Output> retObservable = loadFromLocalSource()
-                .flatMap((Function<Optional<?>, Observable<Output>>) localResult -> {
+        Observable<O> retObservable = loadFromLocalSource()
+                .flatMap((Function<Optional<?>, Observable<O>>) localResult -> {
 
                     // Local data is invalid, return a Observable that fetches remote data and
                     // saves to local data source.
@@ -302,19 +247,19 @@ public class Livebox<RemoteData, Output> {
 
     // Convenience method to return an Observable that observes on Android main thread
     // and subscribes on IO scheduler.
-    public Observable<Output> asAndroidObservable() {
+    public Observable<O> asAndroidObservable() {
         return asObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
     // Convenience method that returns a live data instance.
-    public LiveData<Output> asLiveData() {
-        return new LiveDataAdapter<Output>().adapt(asObservable());
+    public LiveData<O> asLiveData() {
+        return new LiveDataAdapter<O>().adapt(asObservable());
     }
 
     // Uses passed adapter to adapt the result observable.
-    public <T> T as(@NonNull ObservableAdapter<Output, T> adapter) {
+    public <T> T as(@NonNull ObservableAdapter<O, T> adapter) {
         if (adapter == null) {
             throw new IllegalArgumentException("Adapter cannot be null");
         }
