@@ -1,9 +1,7 @@
 package com.creations.app;
 
 import android.annotation.SuppressLint;
-import android.arch.lifecycle.Observer;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -74,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
                 .fetch(service::getUserList, UsersRes.class)
                 .addSource(Sources.MEMORY_LRU, memoryValidator)
                 .addSource(Sources.DISK_PERSISTENT, persistentDiskValidator)
-                .addSource(Sources.DISK_LRU, diskValidator)
+                //.addSource(Sources.DISK_LRU, diskValidator)
                 //.addSource(DiskLruDataSource.create(UsersRes.class), diskValidator)
                 .addConverter(UsersRes.class, usersRes -> Optional.of(Users.fromUsersRes(usersRes)))
                 .retryOnFailure()

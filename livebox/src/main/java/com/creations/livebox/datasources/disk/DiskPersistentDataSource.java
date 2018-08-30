@@ -78,8 +78,22 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
         OutputStream os = null;
         try {
             final File outputFile = new File(mConfig.getOutputDir(), fileName + SUFFIX);
+
+            boolean created = true;
+            if (!mConfig.getOutputDir().exists()) {
+                created = mConfig.getOutputDir().mkdir();
+            }
+
+            // Cannot create file
+            if (!created) {
+                return;
+            }
+
             os = Okio.buffer(Okio.sink(outputFile)).outputStream();
             IOUtils.copy(is, os);
+
+            Logger.d(TAG, "---> Success data saved in diskPersistentDataSource.");
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -96,12 +110,11 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
             }
         }
 
-        Logger.d(TAG, "---> Success data saved in diskPersistentDataSource.");
     }
 
     @Override
     public String toString() {
-        return "DiskLruDataSource";
+        return "DiskPersistentDataSource";
     }
 
     public static class Config {
@@ -111,7 +124,7 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
             this.mOutputDir = outputDir;
         }
 
-        public File getOutputDir() {
+        File getOutputDir() {
             return mOutputDir;
         }
     }
