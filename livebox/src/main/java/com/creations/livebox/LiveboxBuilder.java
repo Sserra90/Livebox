@@ -6,6 +6,8 @@ import com.creations.livebox.converters.Converter;
 import com.creations.livebox.converters.ConvertersFactory;
 import com.creations.livebox.datasources.Fetcher;
 import com.creations.livebox.datasources.LocalDataSource;
+import com.creations.livebox.datasources.disk.DiskLruDataSource;
+import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.factory.DataSourceFactory;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory;
 import com.creations.livebox.util.Optional;
@@ -17,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import io.reactivex.internal.functions.ObjectHelper;
 
 import static com.creations.livebox.util.Objects.isNull;
 
@@ -43,6 +47,18 @@ import static com.creations.livebox.util.Objects.isNull;
  */
 @SuppressWarnings({"UnusedReturnValue", "WeakerAccess"})
 public class LiveboxBuilder<I, O> {
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static void lruCacheConfig(DiskLruDataSource.Config diskCacheConfig) {
+        ObjectHelper.requireNonNull(diskCacheConfig, "Lru disk cache config cannot be null");
+        DiskLruDataSource.setConfig(diskCacheConfig);
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static void persistentCacheConfig(DiskPersistentDataSource.Config diskCacheConfig) {
+        ObjectHelper.requireNonNull(diskCacheConfig, "Persistent disk cache config cannot be null");
+        DiskPersistentDataSource.setConfig(diskCacheConfig);
+    }
 
     // Unique identifier for each livebox instance
     private String mKey;

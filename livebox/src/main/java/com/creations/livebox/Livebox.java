@@ -9,6 +9,7 @@ import com.creations.livebox.converters.ConvertersFactory;
 import com.creations.livebox.datasources.Fetcher;
 import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.datasources.disk.DiskLruDataSource;
+import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.rx.Transformers;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Objects;
@@ -38,12 +39,6 @@ import io.reactivex.schedulers.Schedulers;
 public class Livebox<I, O> {
 
     private static final String TAG = "Livebox";
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void init(DiskLruDataSource.Config diskCacheConfig) {
-        ObjectHelper.requireNonNull(diskCacheConfig, "Cache config cannot be null");
-        DiskLruDataSource.setConfig(diskCacheConfig);
-    }
 
     // Keeps a record of in-flight requests.
     private static final ConcurrentHashMap<BoxKey, Observable> inFlightRequests = new ConcurrentHashMap<>();

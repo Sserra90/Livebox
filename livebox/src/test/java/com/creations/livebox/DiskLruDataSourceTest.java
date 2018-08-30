@@ -5,6 +5,8 @@ import android.os.Looper;
 import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.serializers.Serializer;
+import com.creations.livebox.util.Optional;
+import com.google.gson.reflect.TypeToken;
 
 import junit.framework.Assert;
 
@@ -42,7 +44,7 @@ public class DiskLruDataSourceTest {
 
         // Setup
         final String key = "1000";
-        Livebox.init(new DiskLruDataSource.Config(
+        LiveboxBuilder.lruCacheConfig(new DiskLruDataSource.Config(
                 new File("src/test/resources"),
                 10 * 1024 * 1024 // 10 mg
         ));
@@ -53,14 +55,17 @@ public class DiskLruDataSourceTest {
         values.add("three");
         final Bag<String> bag = new Bag<>("100", values);
 
+        TypeToken<Bag<String>> typeToken = new TypeToken<Bag<String>>() {
+        };
+
         // Exercise
-        final Serializer<Bag<String>> serializer = LiveboxGsonSerializer.create(Bag.class);
-        final DiskLruDataSource dataSource = DiskLruDataSource.create(key);
-        dataSource.save(serializer.serialize(bag));
-        final Bag<String> newBag = serializer.deserialize(dataSource.read());
+        final DiskLruDataSource<Bag<String>, Bag<String>> dataSource = DiskLruDataSource.create(typeToken.getType());
+        dataSource.save(key, bag);
+        final Optional<Bag<String>> newBagOpt = dataSource.read(key);
 
         // Verify
-        Assert.assertEquals(bag, newBag);
+        Assert.assertTrue(newBagOpt.isPresent());
+        Assert.assertEquals(bag, newBagOpt.get());
     }
 
     @Test
