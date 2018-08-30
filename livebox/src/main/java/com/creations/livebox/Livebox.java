@@ -39,6 +39,12 @@ public class Livebox<I, O> {
 
     private static final String TAG = "Livebox";
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static void init(DiskLruDataSource.Config diskCacheConfig) {
+        ObjectHelper.requireNonNull(diskCacheConfig, "Cache config cannot be null");
+        DiskLruDataSource.setConfig(diskCacheConfig);
+    }
+
     // Keeps a record of in-flight requests.
     private static final ConcurrentHashMap<BoxKey, Observable> inFlightRequests = new ConcurrentHashMap<>();
 
@@ -105,12 +111,6 @@ public class Livebox<I, O> {
         this.mConverterFactory = converterFactory;
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void init(DiskLruDataSource.Config diskCacheConfig) {
-        ObjectHelper.requireNonNull(diskCacheConfig, "Cache config cannot be null");
-        DiskLruDataSource.setConfig(diskCacheConfig);
-    }
-
     private Observable<Optional<?>> loadFromLocalSource() {
         Logger.d(TAG, "loadFromLocalSource() called");
 
@@ -146,11 +146,11 @@ public class Livebox<I, O> {
     }
 
     // Fetch data from remote data source and pass new data to local sources.
-    private Observable<O> fetchFromRemoteDataSourceAndSave() {
-        Logger.d(TAG, "fetchFromRemoteDataSourceAndSave() called");
+    private Observable<O> fetchAndSave() {
+        Logger.d(TAG, "fetchAndSave() called");
         return Observable
                 .defer(mFetcher::fetch)
-                .doOnNext(this::passRemoteDataToLocalSources)
+                .doOnNext(this::passFetchedDataToLocalSources)
                 .compose(Transformers.withRetry(mRetryOnFailure))
                 .map(this::convert);
     }
@@ -175,13 +175,13 @@ public class Livebox<I, O> {
             return convertedData.get();
         }
 
-        // If no converter was found, we try casting because remoteData type parameter
-        // could have the same type as output type parameter, in that case no converter is needed.
+        // If no converter was found, we try casting because T type parameter
+        // could have the same type as O type parameter, in that case no converter is needed.
         //noinspection unchecked
         return (O) data;
     }
 
-    private void passRemoteDataToLocalSources(I data) {
+    private void passFetchedDataToLocalSources(I data) {
         Logger.d(TAG, "\n");
         Logger.d(TAG, "Pass fresh data to local sources");
         for (LocalDataSource<I, ?> localSource : mLocalSources) {
@@ -222,7 +222,7 @@ public class Livebox<I, O> {
                     // saves to local data source.
                     if (localResult.isAbsent()) {
                         Logger.d(TAG, "Local data is invalid, hit remote data source and save");
-                        return fetchFromRemoteDataSourceAndSave();
+                        return fetchAndSave();
                     }
 
                     // At this point we know we have valid local data,
@@ -235,7 +235,7 @@ public class Livebox<I, O> {
                         Logger.d(TAG, "Local data is valid but still hit remote data source to refresh data");
                         return Observable.concat(
                                 returnLocalData(localResult.get()),
-                                fetchFromRemoteDataSourceAndSave()
+                                fetchAndSave()
                         );
                     }
                 });

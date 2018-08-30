@@ -50,7 +50,7 @@ public class InMemoryLruDataSource<I> implements LocalDataSource<I, I> {
         private LruCache<String, I> mLruCache;
 
         LiveboxMemoryLru() {
-            int mCacheSize = 10 * 1024 * 1024;
+            int mCacheSize = 10 * 1024 * 1024; // 10 Mb
             mLruCache = new LruCache<>(mCacheSize);
         }
 
