@@ -12,6 +12,7 @@ import com.instagram.igdiskcache.SnapshotInputStream;
 
 import org.apache.commons.io.IOUtils;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -74,7 +75,7 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
 
     private void writeToCacheOutputStream(BufferedSource input, EditorOutputStream output) {
         try {
-            IOUtils.copy(input.inputStream(), output);
+            IOUtils.copy(input.inputStream(), new BufferedOutputStream(output));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -113,7 +114,6 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
 
         private LiveboxDiskCache(Config config) {
             mConfig = config;
-            //mDiskCache = getDiskCache();
         }
 
         static LiveboxDiskCache getInstance(Config config) {

@@ -72,6 +72,10 @@ public class Livebox<I, O> {
     // Converters factory, given a class type returns the converter instance to use.
     private Optional<ConvertersFactory<O>> mConverterFactory;
 
+    // Keeps a log of request timestamps, used for age validator
+    // After each request an entry will be added to journal with the timestamp of the request
+    private Journal mJournal;
+
     // Transformer that adds share functionality to an observable
     private ObservableTransformer<O, O> withShare = new ObservableTransformer<O, O>() {
         @Override
@@ -104,6 +108,7 @@ public class Livebox<I, O> {
         this.mValidators = validators;
         this.mConvertersMap = convertersMap;
         this.mConverterFactory = converterFactory;
+        //this.mJournal = Journal.create()
     }
 
     private Observable<Optional<?>> loadFromLocalSource() {
@@ -182,6 +187,7 @@ public class Livebox<I, O> {
         for (LocalDataSource<I, ?> localSource : mLocalSources) {
             Logger.d(TAG, "---> Saving fresh data in: " + localSource);
             localSource.save(mKey.key(), data);
+
         }
     }
 
