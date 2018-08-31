@@ -8,7 +8,6 @@ import org.junit.Test;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -23,32 +22,23 @@ public class JournalTests {
         Logger.disable();
     }
 
-
     @Test
-    public void writeAndReadToJournal() throws InterruptedException {
+    public void writeAndReadToJournal() {
 
         final Executor executor = Executors.newSingleThreadExecutor();
         final File f = new File("src/test/resources");
-        final Journal journal = Journal.create(f, executor);
+        Journal journal = Journal.create(f, executor);
         journal.save("key1", 10);
         journal.save("key2", 20);
         journal.save("key3", 30);
         journal.save("key4", 40);
         journal.save("key3", 60);
 
-        final CountDownLatch latch = new CountDownLatch(1);
-        final AtomicReference<Optional<Long>> value = new AtomicReference<>(Optional.empty());
-        executor.execute(() -> {
-            // Recreate, rebuild from file
-            final Journal journal1 = Journal.create(f);
-            journal1.save("key5", 80);
-            value.set(journal1.read("key3"));
-            latch.countDown();
-        });
+        journal = Journal.create(f, executor);
+        Optional<Long> value = journal.read("key3");
 
-        latch.await();
-        assertTrue(value.get().isPresent());
-        assertEquals(60L, (long) value.get().get());
+        assertTrue(value.isPresent());
+        assertEquals(60L, (long) value.get());
     }
 
     @Test
@@ -71,13 +61,15 @@ public class JournalTests {
             System.out.println("Thread read finish");
         });
 
-        // Start and join
         for (Thread thread : threads) {
             thread.start();
+        }
+        readThread.start();
+
+        // Start and join
+        for (Thread thread : threads) {
             thread.join();
         }
-
-        readThread.start();
         readThread.join();
 
         assertNotNull(result.get());
