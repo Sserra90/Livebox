@@ -41,13 +41,13 @@ public class JournalTests {
         final AtomicReference<Optional<Long>> result = new AtomicReference<>();
 
         final List<Thread> threads = new ArrayList<>();
-        threads.add(new Thread(new JournalWriter(journal, 10)));
-        threads.add(new Thread(new JournalWriter(journal, 20)));
-        threads.add(new Thread(new JournalWriter(journal, 30)));
-        threads.add(new Thread(new JournalWriter(journal, 40)));
-        threads.add(new Thread(new JournalWriter(journal, 50)));
+        threads.add(createWriterThread(journal, 10));
+        threads.add(createWriterThread(journal, 20));
+        threads.add(createWriterThread(journal, 30));
+        threads.add(createWriterThread(journal, 40));
+        threads.add(createWriterThread(journal, 50));
 
-        Thread readThread = new Thread(() -> {
+        final Thread readThread = new Thread(() -> {
             System.out.println("Thread read");
             result.set(journal.read(key));
             System.out.println("Thread read finish");
@@ -64,6 +64,10 @@ public class JournalTests {
 
         assertNotNull(result.get());
         assertEquals(50, (long) result.get().get());
+    }
+
+    private Thread createWriterThread(Journal journal, long timestamp) {
+        return new Thread(new JournalWriter(journal, timestamp));
     }
 
     private class JournalWriter implements Runnable {
