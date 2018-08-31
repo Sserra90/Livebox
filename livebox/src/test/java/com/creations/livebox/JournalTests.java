@@ -6,8 +6,10 @@ import com.creations.livebox.util.Optional;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static junit.framework.Assert.assertEquals;
@@ -20,17 +22,25 @@ public class JournalTests {
         Logger.disable();
     }
 
+
     @Test
-    public void writeAndReadToJournal() {
+    public void writeAndReadToJournal() throws InterruptedException {
 
-        final Journal journal = Journal.create(new File("src/test/resources"));
+        File f = new File("src/test/resources");
+        Journal journal = Journal.create(f);
+        journal.save("key1", 10);
+        journal.save("key2", 20);
+        journal.save("key3", 30);
+        journal.save("key4", 40);
+        journal.save("key3", 60);
 
-        final long timestamp = System.currentTimeMillis();
-        journal.save("key1", timestamp);
-        final Optional<Long> value = journal.read("key1");
+        // Recreate, rebuild from file
+        journal = Journal.create(f);
+        journal.save("key5", 80);
+        final Optional<Long> value = journal.read("key3");
 
         assertTrue(value.isPresent());
-        assertEquals(timestamp, (long) value.get());
+        assertEquals(60L, (long) value.get());
     }
 
     @Test

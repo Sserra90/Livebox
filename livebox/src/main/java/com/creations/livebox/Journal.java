@@ -3,66 +3,121 @@ package com.creations.livebox;
 import android.util.Log;
 
 import com.creations.livebox.util.Logger;
+import com.creations.livebox.util.OkioUtils;
 import com.creations.livebox.util.Optional;
+import com.creations.livebox.util.Utils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import org.apache.commons.io.IOUtils;
+
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static com.creations.livebox.util.Objects.isNull;
+
 
 public class Journal {
 
     private static final String TAG = "Journal";
-    private static final String FILENAME = "journal.livebox";
-    private static final Executor JOURNAL_EXECUTOR = Executors.newSingleThreadExecutor();
-    private static final Map<String, Long> mTimestamps = new HashMap<>();
+    private static final String FILENAME = "journal_livebox.txt";
 
-    private File mOutputFileDir;
-    private final Gson mGson = new Gson();
-    private final TypeToken<Map<String, Long>> typeToken = new TypeToken<Map<String, Long>>() {
-    };
+    private static final Executor JOURNAL_EXECUTOR = Executors.newSingleThreadExecutor();
+
+    private Map<String, Long> mTimestamps = new HashMap<>();
+    private File mOutputFileDir, mOutputFile;
+    private Writer mWriter;
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
-    private final Runnable mJournalWriterRun = new Runnable() {
+    private final class JournalWriterRun implements Runnable {
+
+        private String mLine;
+
+        JournalWriterRun(String line) {
+            this.mLine = line;
+        }
+
         @Override
         public void run() {
-
-            boolean created = true;
-            if (!mOutputFileDir.exists()) {
-                created = mOutputFileDir.mkdir();
-            }
-
-            if (!created) {
-                Log.e(TAG, "Cannot create journal output dir");
-                return;
-            }
-
-            try (Writer writer = new BufferedWriter(new FileWriter(new File(mOutputFileDir, FILENAME)))) {
-                mGson.toJson(mTimestamps, typeToken.getType(), writer);
-                Logger.d(TAG, "Wrote to journal");
+            try {
+                mWriter.write(mLine);
+                mWriter.write(System.getProperty("line.separator")); // New line
+                mWriter.flush();
+                System.out.println("Wrote line: " + mLine);
             } catch (IOException e) {
                 e.printStackTrace();
+                // no op
             }
         }
-    };
-
-    private Journal(File file) {
-        mOutputFileDir = file;
     }
 
     public static Journal create(File f) {
         return new Journal(f);
+    }
+
+    private Journal(File file) {
+        mOutputFileDir = file;
+        mOutputFile = new File(mOutputFileDir, FILENAME);
+        rebuildFromDisk();
+        createWriter();
+    }
+
+    private void rebuildFromDisk() {
+
+        mTimestamps = new HashMap<>();
+
+        boolean created = true;
+        if (!mOutputFileDir.exists()) {
+            created = mOutputFileDir.mkdir();
+        }
+
+        if (!created || !mOutputFile.exists()) {
+            Logger.e(TAG, "Cannot create journal output dir");
+            return;
+        }
+
+        try {
+            String line;
+            Scanner scan = new Scanner(mOutputFile);
+            while (scan.hasNextLine()) {
+                line = scan.nextLine();
+                final String[] values = line.split(":");
+                mTimestamps.put(values[0], Long.valueOf(values[1]));
+            }
+        } catch (IOException e) {
+            //
+        }
+
+    }
+
+    private void createWriter() {
+        try {
+            mWriter = new OutputStreamWriter(new FileOutputStream(mOutputFile, true), Charset.forName("UTF-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            Utils.closeQuietly(mWriter);
+            mWriter = null;
+        }
     }
 
     public Optional<Long> read(String key) {
@@ -74,7 +129,7 @@ public class Journal {
         } finally {
             readWriteLock.readLock().unlock();
         }
-        return res == null ? Optional.empty() : res;
+        return res;
     }
 
     public void save(String key, long timestamp) {
@@ -84,12 +139,16 @@ public class Journal {
             final Long oldTimestamp = mTimestamps.get(key);
             if (oldTimestamp == null || timestamp > oldTimestamp) {
                 mTimestamps.put(key, timestamp);
-                JOURNAL_EXECUTOR.execute(mJournalWriterRun);
+                if (mWriter != null) {
+                    JOURNAL_EXECUTOR.execute(new JournalWriterRun(buildLine(key, timestamp)));
+                }
             }
         } finally {
             readWriteLock.writeLock().unlock();
         }
-
     }
 
+    private String buildLine(String key, long timestamp) {
+        return key + ":" + timestamp;
+    }
 }
