@@ -6,10 +6,11 @@ import com.creations.livebox.util.Optional;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static junit.framework.Assert.assertEquals;
@@ -26,21 +27,28 @@ public class JournalTests {
     @Test
     public void writeAndReadToJournal() throws InterruptedException {
 
-        File f = new File("src/test/resources");
-        Journal journal = Journal.create(f);
+        final Executor executor = Executors.newSingleThreadExecutor();
+        final File f = new File("src/test/resources");
+        final Journal journal = Journal.create(f, executor);
         journal.save("key1", 10);
         journal.save("key2", 20);
         journal.save("key3", 30);
         journal.save("key4", 40);
         journal.save("key3", 60);
 
-        // Recreate, rebuild from file
-        journal = Journal.create(f);
-        journal.save("key5", 80);
-        final Optional<Long> value = journal.read("key3");
+        final CountDownLatch latch = new CountDownLatch(1);
+        final AtomicReference<Optional<Long>> value = new AtomicReference<>(Optional.empty());
+        executor.execute(() -> {
+            // Recreate, rebuild from file
+            final Journal journal1 = Journal.create(f);
+            journal1.save("key5", 80);
+            value.set(journal1.read("key3"));
+            latch.countDown();
+        });
 
-        assertTrue(value.isPresent());
-        assertEquals(60L, (long) value.get());
+        latch.await();
+        assertTrue(value.get().isPresent());
+        assertEquals(60L, (long) value.get().get());
     }
 
     @Test
@@ -63,7 +71,7 @@ public class JournalTests {
             System.out.println("Thread read finish");
         });
 
-        // Write threads start and join
+        // Start and join
         for (Thread thread : threads) {
             thread.start();
             thread.join();

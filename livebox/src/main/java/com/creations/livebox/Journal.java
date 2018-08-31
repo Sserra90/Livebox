@@ -1,40 +1,22 @@
 package com.creations.livebox;
 
-import android.util.Log;
-
 import com.creations.livebox.util.Logger;
-import com.creations.livebox.util.OkioUtils;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.util.Utils;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import org.apache.commons.io.IOUtils;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import static com.creations.livebox.util.Objects.isNull;
 
 
 public class Journal {
@@ -42,8 +24,7 @@ public class Journal {
     private static final String TAG = "Journal";
     private static final String FILENAME = "journal_livebox.txt";
 
-    private static final Executor JOURNAL_EXECUTOR = Executors.newSingleThreadExecutor();
-
+    private Executor mExecutor;
     private Map<String, Long> mTimestamps = new HashMap<>();
     private File mOutputFileDir, mOutputFile;
     private Writer mWriter;
@@ -71,11 +52,16 @@ public class Journal {
         }
     }
 
-    public static Journal create(File f) {
-        return new Journal(f);
+    public static Journal create(File f, Executor executor) {
+        return new Journal(f, executor);
     }
 
-    private Journal(File file) {
+    public static Journal create(File f) {
+        return new Journal(f, Executors.newSingleThreadExecutor());
+    }
+
+    private Journal(File file, Executor executor) {
+        mExecutor = executor;
         mOutputFileDir = file;
         mOutputFile = new File(mOutputFileDir, FILENAME);
         rebuildFromDisk();
@@ -140,7 +126,7 @@ public class Journal {
             if (oldTimestamp == null || timestamp > oldTimestamp) {
                 mTimestamps.put(key, timestamp);
                 if (mWriter != null) {
-                    JOURNAL_EXECUTOR.execute(new JournalWriterRun(buildLine(key, timestamp)));
+                    mExecutor.execute(new JournalWriterRun(buildLine(key, timestamp)));
                 }
             }
         } finally {
