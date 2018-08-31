@@ -2,6 +2,7 @@ package com.creations.livebox;
 
 import android.support.annotation.NonNull;
 
+import com.creations.livebox.Livebox.BoxKey;
 import com.creations.livebox.converters.Converter;
 import com.creations.livebox.converters.ConvertersFactory;
 import com.creations.livebox.datasources.Fetcher;
@@ -65,7 +66,7 @@ public class LiveboxBuilder<I, O> {
     }
 
     // Unique identifier for each livebox instance
-    private Livebox.BoxKey mKey;
+    private BoxKey mKey;
 
     // Indicates if we should make a fetch to remote data source even if the local data is still valid.
     private boolean mRefresh = false;
@@ -97,7 +98,7 @@ public class LiveboxBuilder<I, O> {
     private List<DataSourceFactory<I>> mDataSourceFactoryList = new ArrayList<>();
 
     public LiveboxBuilder<I, O> withKey(String key) {
-        this.mKey = new Livebox.BoxKey(key);
+        this.mKey = new BoxKey(key);
         return this;
     }
 

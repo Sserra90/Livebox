@@ -29,10 +29,10 @@ public class Journal {
     private static final Map<String, Long> mTimestamps = new HashMap<>();
 
     private File mOutputFileDir;
-    private Gson mGson = new Gson();
+    private final Gson mGson = new Gson();
     private final TypeToken<Map<String, Long>> typeToken = new TypeToken<Map<String, Long>>() {
     };
-    private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
     private final Runnable mJournalWriterRun = new Runnable() {
         @Override
