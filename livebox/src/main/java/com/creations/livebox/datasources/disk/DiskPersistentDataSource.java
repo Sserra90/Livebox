@@ -1,5 +1,7 @@
 package com.creations.livebox.datasources.disk;
 
+import android.util.Log;
+
 import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.serializers.Serializer;
@@ -26,7 +28,7 @@ import okio.Okio;
 public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
 
     private static final String SUFFIX = "_livebox.json";
-    private static final String TAG = "DiskPersistentDataSource";
+    private static final String TAG = "DiskPersistentDataSour";
     private static Config mConfig;
     private Serializer<I> mSerializer;
 
@@ -55,11 +57,14 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
     }
 
     private Optional<O> readFromDisk(String fileName) {
+
         final File outputFile = new File(mConfig.getOutputDir(), fileName + SUFFIX);
-        if (!outputFile.exists() || !outputFile.canRead()) {
+        if (!outputFile.canRead()) {
             return Optional.empty();
         }
+
         Logger.d(TAG, "---> File available, read it");
+
         O data = null;
         try {
             final BufferedSource bs = Okio.buffer(Okio.source(outputFile));
@@ -74,40 +79,28 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
 
     private void writeToDisk(String fileName, BufferedSource input) {
 
-        final InputStream is = input.inputStream();
-        OutputStream os = null;
-        try {
-            final File outputFile = new File(mConfig.getOutputDir(), fileName + SUFFIX);
+        boolean created = true;
+        if (!mConfig.getOutputDir().exists()) {
+            created = mConfig.getOutputDir().mkdir();
+        }
 
-            boolean created = true;
-            if (!mConfig.getOutputDir().exists()) {
-                created = mConfig.getOutputDir().mkdir();
-            }
+        // Cannot create file
+        if (!created) {
+            Logger.e(TAG, "Cannot create DiskPersistentDataSource output dir");
+            return;
+        }
 
-            // Cannot create file
-            if (!created) {
-                return;
-            }
-
-            os = Okio.buffer(Okio.sink(outputFile)).outputStream();
+        final File outputFile = new File(mConfig.getOutputDir(), fileName + SUFFIX);
+        try (
+                final InputStream is = input.inputStream();
+                final OutputStream os = Okio.buffer(Okio.sink(outputFile)).outputStream()
+        ) {
             IOUtils.copy(is, os);
-
             Logger.d(TAG, "---> Success data saved in diskPersistentDataSource.");
-
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                input.inputStream().close();
-                if (os != null) {
-                    os.flush();
-                    os.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
 
     }
