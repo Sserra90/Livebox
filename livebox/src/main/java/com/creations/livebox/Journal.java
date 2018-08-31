@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public class Journal {
@@ -30,6 +32,7 @@ public class Journal {
     private Gson mGson = new Gson();
     private final TypeToken<Map<String, Long>> typeToken = new TypeToken<Map<String, Long>>() {
     };
+    private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
     private final Runnable mJournalWriterRun = new Runnable() {
         @Override
@@ -54,7 +57,6 @@ public class Journal {
         }
     };
 
-
     private Journal(File file) {
         mOutputFileDir = file;
     }
@@ -64,19 +66,30 @@ public class Journal {
     }
 
     public Optional<Long> read(String key) {
-        synchronized (this) {
-            return Optional.ofNullable(mTimestamps.get(key));
+
+        Optional<Long> res;
+        readWriteLock.readLock().lock();
+        try {
+            res = Optional.ofNullable(mTimestamps.get(key));
+        } finally {
+            readWriteLock.readLock().unlock();
         }
+        return res == null ? Optional.empty() : res;
     }
 
     public void save(String key, long timestamp) {
-        synchronized (this) {
+
+        readWriteLock.writeLock().lock();
+        try {
             final Long oldTimestamp = mTimestamps.get(key);
             if (oldTimestamp == null || timestamp > oldTimestamp) {
                 mTimestamps.put(key, timestamp);
                 JOURNAL_EXECUTOR.execute(mJournalWriterRun);
             }
+        } finally {
+            readWriteLock.writeLock().unlock();
         }
+
     }
 
 }

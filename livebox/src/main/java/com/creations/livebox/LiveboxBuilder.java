@@ -11,9 +11,11 @@ import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.factory.DataSourceFactory;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory;
 import com.creations.livebox.util.Optional;
+import com.creations.livebox.util.Utils;
 import com.creations.livebox.validator.Validator;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.File;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +49,8 @@ import static com.creations.livebox.util.Objects.isNull;
  */
 @SuppressWarnings({"UnusedReturnValue", "WeakerAccess"})
 public class LiveboxBuilder<I, O> {
+
+    private static final String LIVEBOX_DIR = "livebox_dir";
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void lruCacheConfig(DiskLruDataSource.Config diskCacheConfig) {
@@ -178,6 +182,7 @@ public class LiveboxBuilder<I, O> {
     }
 
     public Livebox<I, O> build() {
+
         return new Livebox<>(
                 mKey, mRefresh, mIgnoreCache, mRetryOnFailure,
                 mFetcher, mLocalSources, mValidators, mConvertersMap,
