@@ -61,7 +61,7 @@ public class LiveboxBuilder<I, O> {
     }
 
     // Unique identifier for each livebox instance
-    private String mKey;
+    private Livebox.BoxKey mKey;
 
     // Indicates if we should make a fetch to remote data source even if the local data is still valid.
     private boolean mRefresh = false;
@@ -93,10 +93,7 @@ public class LiveboxBuilder<I, O> {
     private List<DataSourceFactory<I>> mDataSourceFactoryList = new ArrayList<>();
 
     public LiveboxBuilder<I, O> withKey(String key) {
-        if (isNull(key) || key.isEmpty()) {
-            throw new IllegalArgumentException("Key cannot be null or empty");
-        }
-        this.mKey = key;
+        this.mKey = new Livebox.BoxKey(key);
         return this;
     }
 

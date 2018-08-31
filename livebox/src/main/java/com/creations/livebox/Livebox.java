@@ -93,13 +93,13 @@ public class Livebox<I, O> {
         }
     };
 
-    Livebox(String key, boolean refresh, boolean ignoreDiskCache, boolean retryOnFailure,
+    Livebox(BoxKey key, boolean refresh, boolean ignoreDiskCache, boolean retryOnFailure,
             Fetcher<I> fetcher, List<LocalDataSource<I, ?>> localSources,
             Map<LocalDataSource<I, ?>, Validator> validators,
             Map<Class<?>, Converter<?, O>> convertersMap,
             Optional<ConvertersFactory<O>> converterFactory) {
 
-        this.mKey = new BoxKey(key);
+        this.mKey = key;
         this.mRefresh = refresh;
         this.mIgnoreDiskCache = ignoreDiskCache;
         this.mRetryOnFailure = retryOnFailure;
@@ -269,7 +269,7 @@ public class Livebox<I, O> {
 
     // A Key that uses a single string as identifier
     // Key must match the regex [a-z0-9_-]{1,120}.
-    private static class BoxKey {
+    public final static class BoxKey {
 
         private static final String STRING_KEY_PATTERN = "[a-z0-9_-]{1,120}";
         private static final Pattern LEGAL_KEY_PATTERN = Pattern.compile(STRING_KEY_PATTERN);
@@ -289,7 +289,7 @@ public class Livebox<I, O> {
             return key;
         }
 
-        public String key() {
+        String key() {
             return mKey;
         }
 
