@@ -82,15 +82,14 @@ public class Journal {
     }
 
     public static Journal create(File f, Executor executor) {
-        /*if (INSTANCE == null) {
+        if (INSTANCE == null) {
             synchronized (Journal.class) {
                 if (INSTANCE == null) {
                     INSTANCE = new Journal(f, executor);
                 }
             }
         }
-        return INSTANCE;*/
-        return new Journal(f, executor);
+        return INSTANCE;//new Journal(f, executor);
     }
 
     public static Journal create(File f) {

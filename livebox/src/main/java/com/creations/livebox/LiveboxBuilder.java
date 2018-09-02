@@ -7,23 +7,18 @@ import com.creations.livebox.converters.Converter;
 import com.creations.livebox.converters.ConvertersFactory;
 import com.creations.livebox.datasources.Fetcher;
 import com.creations.livebox.datasources.LocalDataSource;
-import com.creations.livebox.datasources.disk.DiskLruDataSource;
-import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.factory.DataSourceFactory;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory;
 import com.creations.livebox.util.Optional;
-import com.creations.livebox.util.Utils;
+import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.File;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import io.reactivex.internal.functions.ObjectHelper;
 
 import static com.creations.livebox.util.Objects.isNull;
 
@@ -51,20 +46,6 @@ import static com.creations.livebox.util.Objects.isNull;
 @SuppressWarnings({"UnusedReturnValue", "WeakerAccess"})
 public class LiveboxBuilder<I, O> {
 
-    private static final String LIVEBOX_DIR = "livebox_dir";
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void lruCacheConfig(DiskLruDataSource.Config diskCacheConfig) {
-        ObjectHelper.requireNonNull(diskCacheConfig, "Lru disk cache config cannot be null");
-        DiskLruDataSource.setConfig(diskCacheConfig);
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void persistentCacheConfig(DiskPersistentDataSource.Config diskCacheConfig) {
-        ObjectHelper.requireNonNull(diskCacheConfig, "Persistent disk cache config cannot be null");
-        DiskPersistentDataSource.setConfig(diskCacheConfig);
-    }
-
     // Unique identifier for each livebox instance
     private BoxKey mKey;
 
@@ -76,6 +57,9 @@ public class LiveboxBuilder<I, O> {
 
     // Indicates if we should retry the remote data source request if an error occurs
     private boolean mRetryOnFailure = false;
+
+    // Indicates if an age validator was found
+    private boolean mIsUsingAgeValidator = false;
 
     // Fetcher used to retrieve data from remote source
     private Fetcher<I> mFetcher;
@@ -138,6 +122,10 @@ public class LiveboxBuilder<I, O> {
         requireNonNull(source, "Source cannot be null");
         requireNonNull(validator, "Validator cannot be null");
 
+        if (validator instanceof AgeValidator) {
+            mIsUsingAgeValidator = true;
+        }
+
         mLocalSources.add(source);
         mValidators.put(source, validator);
         return this;
@@ -183,9 +171,8 @@ public class LiveboxBuilder<I, O> {
     }
 
     public Livebox<I, O> build() {
-
         return new Livebox<>(
-                mKey, mRefresh, mIgnoreCache, mRetryOnFailure,
+                mKey, mRefresh, mIgnoreCache, mRetryOnFailure, mIsUsingAgeValidator,
                 mFetcher, mLocalSources, mValidators, mConvertersMap,
                 mConverterFactory
         );

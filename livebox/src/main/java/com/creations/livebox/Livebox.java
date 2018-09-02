@@ -1,6 +1,7 @@
 package com.creations.livebox;
 
 import android.arch.lifecycle.LiveData;
+import android.content.Context;
 
 import com.creations.livebox.adapters.LiveDataAdapter;
 import com.creations.livebox.adapters.ObservableAdapter;
@@ -14,8 +15,10 @@ import com.creations.livebox.rx.Transformers;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Objects;
 import com.creations.livebox.util.Optional;
+import com.creations.livebox.util.Utils;
 import com.creations.livebox.validator.Validator;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,8 +43,50 @@ public class Livebox<I, O> {
 
     private static final String TAG = "Livebox";
 
+    private static final String LRU_DISK_CACHE_DIR = "livebox_disk_lru_cache";
+    private static final String PERSISTENT_DISK_CACHE_DIR = "livebox_disk_persistent_cache";
+    private static final String JOURNAL_DIR = "livebox_journal_dir";
+
+    private static final int DEFAULT_DISK_CACHE_SIZE = 1024 * 1024 * 100; // 100MB
+    private static final int DEFAULT_DISK_CACHE_SIZE_PERCENT = 10; // 10% of free disk space
+
+    public static void init(Context context) {
+        mInit = true;
+
+        final File lruCacheDir = Utils.getCacheDirectory(context, LRU_DISK_CACHE_DIR);
+        final long lurCacheSize = Utils.getCacheSizeInBytes(
+                lruCacheDir,
+                DEFAULT_DISK_CACHE_SIZE_PERCENT / 100F,
+                DEFAULT_DISK_CACHE_SIZE
+        );
+
+        final File persistentCacheDir = Utils.getCacheDirectory(context, PERSISTENT_DISK_CACHE_DIR);
+        persistentCacheConfig(new DiskPersistentDataSource.Config(persistentCacheDir));
+        lruCacheConfig(new DiskLruDataSource.Config(lruCacheDir, lurCacheSize));
+
+        JOURNAL = Journal.create(Utils.getCacheDirectory(context, JOURNAL_DIR));
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void lruCacheConfig(DiskLruDataSource.Config diskCacheConfig) {
+        ObjectHelper.requireNonNull(diskCacheConfig, "Lru disk cache config cannot be null");
+        DiskLruDataSource.setConfig(diskCacheConfig);
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void persistentCacheConfig(DiskPersistentDataSource.Config diskCacheConfig) {
+        ObjectHelper.requireNonNull(diskCacheConfig, "Persistent disk cache config cannot be null");
+        DiskPersistentDataSource.setConfig(diskCacheConfig);
+    }
+
     // Keeps a record of in-flight requests.
     private static final ConcurrentHashMap<BoxKey, Observable> inFlightRequests = new ConcurrentHashMap<>();
+
+    // Journal that keeps a log of requests timestamps
+    public static Journal JOURNAL;
+
+    // Indicates if Livebox was initialized
+    private static boolean mInit = false;
 
     // A unique key that identifies this Livebox, used to keep track of in-flight requests.
     // Also this key is used to save and retrieve entries in cache
@@ -55,6 +100,9 @@ public class Livebox<I, O> {
 
     // Indicates if we should retry the remote data source request if an error occurs
     private boolean mRetryOnFailure;
+
+    // If an age validator was found
+    private boolean mIsUsingAgeValidator;
 
     // Remote data source
     private Fetcher<I> mFetcher;
@@ -71,10 +119,6 @@ public class Livebox<I, O> {
 
     // Converters factory, given a class type returns the converter instance to use.
     private Optional<ConvertersFactory<O>> mConverterFactory;
-
-    // Keeps a log of request timestamps, used for age validator
-    // After each request an entry will be added to journal with the timestamp of the request
-    private Journal mJournal;
 
     // Transformer that adds share functionality to an observable
     private ObservableTransformer<O, O> withShare = new ObservableTransformer<O, O>() {
@@ -94,21 +138,25 @@ public class Livebox<I, O> {
     };
 
     Livebox(BoxKey key, boolean refresh, boolean ignoreDiskCache, boolean retryOnFailure,
-            Fetcher<I> fetcher, List<LocalDataSource<I, ?>> localSources,
+            boolean isUsingAgeValidator, Fetcher<I> fetcher, List<LocalDataSource<I, ?>> localSources,
             Map<LocalDataSource<I, ?>, Validator> validators,
             Map<Class<?>, Converter<?, O>> convertersMap,
             Optional<ConvertersFactory<O>> converterFactory) {
 
-        this.mKey = key;
-        this.mRefresh = refresh;
-        this.mIgnoreDiskCache = ignoreDiskCache;
-        this.mRetryOnFailure = retryOnFailure;
-        this.mFetcher = fetcher;
-        this.mLocalSources = localSources;
-        this.mValidators = validators;
-        this.mConvertersMap = convertersMap;
-        this.mConverterFactory = converterFactory;
-        //this.mJournal = Journal.create()
+        if (!mInit) {
+            throw new IllegalStateException("You must call Livebox.init() before creating any instance");
+        }
+
+        mKey = key;
+        mRefresh = refresh;
+        mIgnoreDiskCache = ignoreDiskCache;
+        mRetryOnFailure = retryOnFailure;
+        mIsUsingAgeValidator = isUsingAgeValidator;
+        mFetcher = fetcher;
+        mLocalSources = localSources;
+        mValidators = validators;
+        mConvertersMap = convertersMap;
+        mConverterFactory = converterFactory;
     }
 
     private Observable<Optional<?>> loadFromLocalSource() {
@@ -121,10 +169,16 @@ public class Livebox<I, O> {
         return Observable.fromIterable(mLocalSources)
                 .map(source -> {
                     Logger.d(TAG, "---> Hit source " + source);
+
                     final Optional<?> data = source.read(mKey.key());
+                    if (data.isAbsent()) {
+                        return data;
+                    }
+
                     @SuppressWarnings("unchecked")
-                    boolean isValid = data.isPresent() && mValidators.get(source).validate(data.get());
+                    boolean isValid = mValidators.get(source).validate(mKey.key(), data.get());
                     Logger.d(TAG, "---> Data from source " + source + " is valid: " + isValid);
+
                     return isValid ? data : Optional.empty();
                 })
                 .filter(Optional::isPresent)
@@ -182,12 +236,16 @@ public class Livebox<I, O> {
     }
 
     private void passFetchedDataToLocalSources(I data) {
+        if (mIsUsingAgeValidator) {
+            Logger.d(TAG, "---> Save in journal for key: " + mKey);
+            JOURNAL.save(mKey.key(), System.currentTimeMillis());
+        }
+
         Logger.d(TAG, "\n");
         Logger.d(TAG, "Pass fresh data to local sources");
         for (LocalDataSource<I, ?> localSource : mLocalSources) {
             Logger.d(TAG, "---> Saving fresh data in: " + localSource);
             localSource.save(mKey.key(), data);
-
         }
     }
 

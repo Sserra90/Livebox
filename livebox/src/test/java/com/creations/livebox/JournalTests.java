@@ -66,10 +66,6 @@ public class JournalTests {
         }
         readThread.start();
 
-        // Start and join
-        for (Thread thread : threads) {
-            thread.join();
-        }
         readThread.join();
 
         assertNotNull(result.get());

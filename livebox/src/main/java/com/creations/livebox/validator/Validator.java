@@ -6,5 +6,5 @@ package com.creations.livebox.validator;
  * sergioserra99@gmail.com
  */
 public interface Validator<R> {
-    boolean validate(R item);
+    boolean validate(String key, R item);
 }
