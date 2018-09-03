@@ -2,6 +2,7 @@ package com.creations.livebox;
 
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
+import com.creations.livebox.validator.Journal;
 
 import org.junit.Test;
 

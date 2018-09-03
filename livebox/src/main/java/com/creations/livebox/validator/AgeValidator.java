@@ -1,6 +1,5 @@
 package com.creations.livebox.validator;
 
-import com.creations.livebox.Journal;
 import com.creations.livebox.Livebox;
 import com.creations.livebox.util.Optional;
 
@@ -16,7 +15,7 @@ public final class AgeValidator<R> implements Validator<R> {
     private Journal mJournal;
 
     public static <T> AgeValidator<T> create(long ttl) {
-        return new AgeValidator<>(Livebox.JOURNAL, ttl);
+        return new AgeValidator<>(Livebox.journal, ttl);
     }
 
     private AgeValidator(Journal journal, long ttl) {

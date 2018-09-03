@@ -5,6 +5,7 @@ import android.content.Context;
 
 import com.creations.livebox.adapters.LiveDataAdapter;
 import com.creations.livebox.adapters.ObservableAdapter;
+import com.creations.livebox.config.Config;
 import com.creations.livebox.converters.Converter;
 import com.creations.livebox.converters.ConvertersFactory;
 import com.creations.livebox.datasources.Fetcher;
@@ -16,6 +17,7 @@ import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Objects;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.util.Utils;
+import com.creations.livebox.validator.Journal;
 import com.creations.livebox.validator.Validator;
 
 import java.io.File;
@@ -34,6 +36,8 @@ import io.reactivex.functions.Function;
 import io.reactivex.internal.functions.ObjectHelper;
 import io.reactivex.schedulers.Schedulers;
 
+import static com.creations.livebox.util.Objects.nonNull;
+
 /**
  * @author Sérgio Serra
  * Criations
@@ -51,20 +55,33 @@ public class Livebox<I, O> {
     private static final int DEFAULT_DISK_CACHE_SIZE_PERCENT = 10; // 10% of free disk space
 
     public static void init(Context context) {
-        mInit = true;
-
         final File lruCacheDir = Utils.getCacheDirectory(context, LRU_DISK_CACHE_DIR);
         final long lurCacheSize = Utils.getCacheSizeInBytes(
                 lruCacheDir,
                 DEFAULT_DISK_CACHE_SIZE_PERCENT / 100F,
                 DEFAULT_DISK_CACHE_SIZE
         );
-
         final File persistentCacheDir = Utils.getCacheDirectory(context, PERSISTENT_DISK_CACHE_DIR);
-        persistentCacheConfig(new DiskPersistentDataSource.Config(persistentCacheDir));
-        lruCacheConfig(new DiskLruDataSource.Config(lruCacheDir, lurCacheSize));
 
-        JOURNAL = Journal.create(Utils.getCacheDirectory(context, JOURNAL_DIR));
+        init(context, new Config()
+                .lruCacheConfig(new DiskLruDataSource.Config(lruCacheDir, lurCacheSize))
+                .persistentCacheConfig(new DiskPersistentDataSource.Config(persistentCacheDir))
+        );
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static void init(Context context, Config config) {
+        mInit = true;
+
+        if (nonNull(config.getPersistentConfig())) {
+            persistentCacheConfig(config.getPersistentConfig());
+        }
+
+        if (nonNull(config.getLruConfig())) {
+            lruCacheConfig(config.getLruConfig());
+        }
+
+        journal = Journal.create(Utils.getCacheDirectory(context, JOURNAL_DIR));
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -83,7 +100,7 @@ public class Livebox<I, O> {
     private static final ConcurrentHashMap<BoxKey, Observable> inFlightRequests = new ConcurrentHashMap<>();
 
     // Journal that keeps a log of requests timestamps
-    public static Journal JOURNAL;
+    public static Journal journal;
 
     // Indicates if Livebox was initialized
     private static boolean mInit = false;
@@ -220,7 +237,7 @@ public class Livebox<I, O> {
             converter = (Converter<T, O>) mConvertersMap.get(data.getClass());
         }
 
-        if (Objects.nonNull(converter)) {
+        if (nonNull(converter)) {
             Optional<O> convertedData = converter.convert(data);
             Logger.d(TAG, "---> Converter found for type: " + data.getClass());
             if (convertedData.isAbsent()) {
@@ -238,7 +255,7 @@ public class Livebox<I, O> {
     private void passFetchedDataToLocalSources(I data) {
         if (mIsUsingAgeValidator) {
             Logger.d(TAG, "---> Save in journal for key: " + mKey);
-            JOURNAL.save(mKey.key(), System.currentTimeMillis());
+            journal.save(mKey.key(), System.currentTimeMillis());
         }
 
         Logger.d(TAG, "\n");

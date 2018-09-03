@@ -1,4 +1,4 @@
-package com.creations.livebox;
+package com.creations.livebox.validator;
 
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;

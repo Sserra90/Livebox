@@ -1,7 +1,5 @@
 package com.creations.livebox.datasources.disk;
 
-import android.util.Log;
-
 import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.serializers.Serializer;
