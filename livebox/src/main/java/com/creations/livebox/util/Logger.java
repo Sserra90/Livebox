@@ -165,7 +165,11 @@ public class Logger {
     public static void d(String tag, String msg) {
         if (isInternalLoggable(android.util.Log.DEBUG)) {
             android.util.Log.d(mainTagPrefix + tag, msg);
+            return;
         }
+
+        // Log with system out
+        System.out.println(msg);
     }
 
     /**

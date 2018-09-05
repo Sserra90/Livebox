@@ -145,7 +145,7 @@ public class Livebox<I, O> {
         public ObservableSource<O> apply(Observable<O> upstream) {
             Logger.d(TAG, "Compose with share");
             Observable<O> observable = upstream
-                    .doOnTerminate(() -> {
+                    .doOnComplete(() -> {
                         Logger.d(TAG, "Remove from inFlightRequests with key: " + mKey);
                         inFlightRequests.remove(mKey);
                     })
@@ -260,7 +260,6 @@ public class Livebox<I, O> {
             journal.save(mKey.key(), System.currentTimeMillis());
         }
 
-        Logger.d(TAG, "\n");
         Logger.d(TAG, "Pass fresh data to local sources");
         for (LocalDataSource<I, ?> localSource : mLocalSources) {
             Logger.d(TAG, "---> Saving fresh data in: " + localSource);
