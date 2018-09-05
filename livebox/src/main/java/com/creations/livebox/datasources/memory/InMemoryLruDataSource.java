@@ -1,9 +1,9 @@
 package com.creations.livebox.datasources.memory;
 
 import android.support.v4.util.LruCache;
-import android.util.Log;
 
 import com.creations.livebox.datasources.LocalDataSource;
+import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
 
 /**
@@ -29,13 +29,13 @@ public class InMemoryLruDataSource<I> implements LocalDataSource<I, I> {
 
     @Override
     public Optional<I> read(String key) {
-        Log.d(TAG, "Read from memory with key: " + key);
+        Logger.d(TAG, "Read from memory with key: " + key);
         return Optional.ofNullable(mLruCache.read(key));
     }
 
     @Override
     public void save(String key, I input) {
-        Log.d(TAG, "Save to memory with key: " + key);
+        Logger.d(TAG, "Save to memory with key: " + key);
         mLruCache.save(key, input);
     }
 

@@ -2,9 +2,8 @@ package com.creations.livebox;
 
 import android.os.Looper;
 
+import com.creations.livebox.config.Config;
 import com.creations.livebox.datasources.disk.DiskLruDataSource;
-import com.creations.livebox.serializers.LiveboxGsonSerializer;
-import com.creations.livebox.serializers.Serializer;
 import com.creations.livebox.util.Optional;
 import com.google.gson.reflect.TypeToken;
 
@@ -44,10 +43,11 @@ public class DiskLruDataSourceTest {
 
         // Setup
         final String key = "1000";
-        LiveboxBuilder.lruCacheConfig(new DiskLruDataSource.Config(
-                new File("src/test/resources"),
-                10 * 1024 * 1024 // 10 mg
-        ));
+        Livebox.init(new Config().lruCacheConfig(
+                new DiskLruDataSource.Config(new File("src/test/resources"),
+                        10 * 1024 * 1024 // 10 mg
+                ))
+        );
 
         final List<String> values = new ArrayList<>();
         values.add("one");

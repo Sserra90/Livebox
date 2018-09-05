@@ -14,7 +14,6 @@ import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.rx.Transformers;
 import com.creations.livebox.util.Logger;
-import com.creations.livebox.util.Objects;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.util.Utils;
 import com.creations.livebox.validator.Journal;
@@ -63,14 +62,15 @@ public class Livebox<I, O> {
         );
         final File persistentCacheDir = Utils.getCacheDirectory(context, PERSISTENT_DISK_CACHE_DIR);
 
-        init(context, new Config()
+        init(new Config()
+                .journalDir(Utils.getCacheDirectory(context, JOURNAL_DIR))
                 .lruCacheConfig(new DiskLruDataSource.Config(lruCacheDir, lurCacheSize))
                 .persistentCacheConfig(new DiskPersistentDataSource.Config(persistentCacheDir))
         );
     }
 
     @SuppressWarnings("WeakerAccess")
-    public static void init(Context context, Config config) {
+    public static void init(Config config) {
         mInit = true;
 
         if (nonNull(config.getPersistentConfig())) {
@@ -81,7 +81,9 @@ public class Livebox<I, O> {
             lruCacheConfig(config.getLruConfig());
         }
 
-        journal = Journal.create(Utils.getCacheDirectory(context, JOURNAL_DIR));
+        if (nonNull(config.getJournalDir())) {
+            journal = Journal.create(config.getJournalDir());
+        }
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

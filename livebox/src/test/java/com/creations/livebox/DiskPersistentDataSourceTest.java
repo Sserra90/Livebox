@@ -1,5 +1,6 @@
 package com.creations.livebox;
 
+import com.creations.livebox.config.Config;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.serializers.Serializer;
@@ -30,9 +31,9 @@ public class DiskPersistentDataSourceTest {
     @Before
     public void setup() {
         Logger.disable();
-        LiveboxBuilder.persistentCacheConfig(new DiskPersistentDataSource.Config(
+        Livebox.init(new Config().persistentCacheConfig(new DiskPersistentDataSource.Config(
                 new File("src/test/resources")
-        ));
+        )));
     }
 
     @Test
