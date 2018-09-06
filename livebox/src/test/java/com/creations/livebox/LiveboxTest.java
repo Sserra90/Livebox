@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import io.reactivex.Observable;
 import io.reactivex.observers.TestObserver;
 
+import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,6 +31,8 @@ import static org.mockito.Mockito.when;
  * @author Sérgio Serra on 05/09/2018.
  * Criations
  * sergioserra99@gmail.com
+ * <p>
+ * Unit tests for {@link Livebox}
  */
 public class LiveboxTest {
 
@@ -234,6 +237,37 @@ public class LiveboxTest {
         // Assert we received the correct value
         assertTestObserver(bagTestObserver, bag);
 
+    }
+
+    /**
+     * Check {@link Fetcher#fetch()} observable is retried when it emits an error.
+     */
+    @Test
+    public void fetchWithRetry() {
+        Livebox.init(new Config());
+
+        final int[] nrInvocations = {0};
+        final Fetcher<Bag<String>> bagFetcher = () -> Observable.fromCallable(() -> {
+            nrInvocations[0]++;
+            if (nrInvocations[0] == 1) {
+                throw new RuntimeException();
+            }
+            return new Bag<String>("1", new ArrayList<>());
+        });
+
+        final LiveboxBuilder<Bag<String>, Bag<String>> builder = new LiveboxBuilder<>();
+        Livebox<Bag<String>, Bag<String>> bagBox = builder
+                .withKey(TEST_KEY)
+                .fetch(bagFetcher, TYPE)
+                .ignoreCache(true)
+                .retryOnFailure()
+                .build();
+
+        // Block until emits
+        bagBox.asObservable().blockingFirst();
+
+        // Check if number of invocations is two
+        assertEquals(2, nrInvocations[0]);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

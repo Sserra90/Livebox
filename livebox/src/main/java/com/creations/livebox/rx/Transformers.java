@@ -1,12 +1,9 @@
 package com.creations.livebox.rx;
 
-import android.util.Log;
-
-import org.reactivestreams.Publisher;
+import com.creations.livebox.util.Logger;
 
 import java.util.concurrent.TimeUnit;
 
-import io.reactivex.FlowableTransformer;
 import io.reactivex.ObservableTransformer;
 
 /**
@@ -21,7 +18,7 @@ public class Transformers {
     public static <T> ObservableTransformer<T, T> withRetry(boolean retry) {
         return upstream -> {
             if (retry) {
-                Log.d(TAG, "Compose with retry");
+                Logger.d(TAG, "Compose with retry");
                 return upstream.retryWhen(new RetryWithDelay(3, TimeUnit.SECONDS.toMillis(2)));
             }
             return upstream;
