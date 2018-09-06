@@ -5,6 +5,7 @@ import com.creations.livebox.datasources.Fetcher;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
 import com.creations.livebox.util.Logger;
+import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
 import com.google.gson.reflect.TypeToken;
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import io.reactivex.Observable;
 import io.reactivex.observers.TestObserver;
 
+import static java.util.Collections.singletonList;
 import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -68,7 +70,7 @@ public class LiveboxTest {
      * {@link Livebox#mIgnoreDiskCache} is set to false.
      */
     @Test
-    public void fetchWithIgnoreCache() {
+    public void testFetchWithIgnoreCache() {
         Livebox.init(new Config());
 
         final Bag<String> bag = new Bag<>("1", new ArrayList<>());
@@ -96,7 +98,7 @@ public class LiveboxTest {
      * Check {@link Fetcher#fetch()} was called only one time when using a local source.
      */
     @Test
-    public void fetchWithSource() {
+    public void testFetchWithSource() {
         Livebox.init(new Config());
 
         // Setup mock fetcher
@@ -127,7 +129,7 @@ public class LiveboxTest {
      * Fetch with an expired age validator, {@link Fetcher#fetch()} should be called two times.
      */
     @Test
-    public void fetchWithExpiredAgeValidator() {
+    public void testFetchWithExpiredAgeValidator() {
         Livebox.init(new Config().journalDir(RES_FILE));
 
         // Setup mock fetcher
@@ -154,7 +156,7 @@ public class LiveboxTest {
     }
 
     @Test
-    public void fetchWithAgeValidator() {
+    public void testFetchWithAgeValidator() {
         Livebox.init(new Config().journalDir(RES_FILE));
 
         // Setup mock fetcher
@@ -181,7 +183,7 @@ public class LiveboxTest {
     }
 
     @Test
-    public void fetchWithMultipleSources() {
+    public void testFetchWithMultipleSources() {
         Livebox.init(new Config()
                 .persistentCacheConfig(new DiskPersistentDataSource.Config(RES_FILE))
                 .journalDir(RES_FILE)
@@ -236,14 +238,13 @@ public class LiveboxTest {
 
         // Assert we received the correct value
         assertTestObserver(bagTestObserver, bag);
-
     }
 
     /**
      * Check {@link Fetcher#fetch()} observable is retried when it emits an error.
      */
     @Test
-    public void fetchWithRetry() {
+    public void testFetchWithRetry() {
         Livebox.init(new Config());
 
         final int[] nrInvocations = {0};
@@ -268,6 +269,62 @@ public class LiveboxTest {
 
         // Check if number of invocations is two
         assertEquals(2, nrInvocations[0]);
+    }
+
+    @Test
+    public void testFetchWithConverter() {
+        Livebox.init(new Config());
+
+        // Setup mock fetcher
+        final Bag<String> bag = new Bag<>("1", singletonList("1"));
+        final Fetcher<Bag<String>> bagFetcher = mockFetcher(bag);
+
+        final LiveboxBuilder<Bag<String>, String> builder = new LiveboxBuilder<>();
+        Livebox<Bag<String>, String> bagBox = builder
+                .withKey(TEST_KEY)
+                .fetch(bagFetcher, TYPE)
+                .addConverter(Bag.class, o -> Optional.of(o.getId()))
+                .ignoreCache(true)
+                .build();
+
+        final TestObserver<String> bagTestObserver = new TestObserver<>();
+        bagBox.asObservable().subscribe();
+        bagBox.asObservable().subscribe(bagTestObserver);
+
+        // Assert test observer
+        assertTestObserver(bagTestObserver, "1");
+    }
+
+    @Test
+    public void testMultipleRequestsWithShare() {
+        Livebox.init(new Config());
+
+        // Setup fetcher
+        final Bag<String> bag = new Bag<>("1", singletonList("1"));
+        final int[] nrInvocations = {0};
+        final Fetcher<Bag<String>> bagFetcher = () -> Observable.fromCallable(() -> {
+            nrInvocations[0]++;
+            return bag;
+        });
+
+        final LiveboxBuilder<Bag<String>, Bag<String>> builder = new LiveboxBuilder<>();
+        final Livebox<Bag<String>, Bag<String>> bagBox = builder
+                .withKey(TEST_KEY)
+                .fetch(bagFetcher, TYPE)
+                .ignoreCache(true)
+                .build();
+
+        final TestObserver<Bag<String>> bagTestObserver = new TestObserver<>();
+
+        bagBox.asObservable()
+                .doOnSubscribe(disposable -> bagBox.asObservable().subscribe(bagTestObserver))
+                .subscribe();
+
+        // Assert we received the correct value
+        assertTestObserver(bagTestObserver, bag);
+
+        // Check number of invocations
+        assertEquals(1, nrInvocations[0]);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

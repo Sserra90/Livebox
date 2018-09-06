@@ -30,6 +30,14 @@ public class Bag<T> {
                 Objects.equals(values, bag.values);
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public List<T> getValues() {
+        return values;
+    }
+
     @Override
     public String toString() {
         return "Bag{" +
