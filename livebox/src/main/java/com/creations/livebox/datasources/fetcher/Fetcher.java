@@ -1,4 +1,4 @@
-package com.creations.livebox.datasources;
+package com.creations.livebox.datasources.fetcher;
 
 import io.reactivex.Observable;
 

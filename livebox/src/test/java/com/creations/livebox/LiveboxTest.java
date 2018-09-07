@@ -1,9 +1,9 @@
 package com.creations.livebox;
 
 import com.creations.livebox.config.Config;
-import com.creations.livebox.datasources.Fetcher;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
+import com.creations.livebox.datasources.fetcher.Fetcher;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.AgeValidator;
