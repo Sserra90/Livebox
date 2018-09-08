@@ -24,6 +24,7 @@ public class User implements Parcelable {
             return new User[size];
         }
     };
+
     @SerializedName("login")
     @Expose
     private String login;
@@ -47,8 +48,6 @@ public class User implements Parcelable {
         gravatarId = in.readString();
         url = in.readString();
         htmlUrl = in.readString();
-
-
     }
 
     public String getLogin() {

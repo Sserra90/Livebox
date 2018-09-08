@@ -38,6 +38,10 @@ public class FileFetcher<T> implements Fetcher<T> {
         return create(new FileInputStream(file), type);
     }
 
+    public static <T> FileFetcher<T> create(String filename, Type type) throws FileNotFoundException {
+        return create(new FileInputStream(new File(filename)), type);
+    }
+
     private FileFetcher(InputStream is, Type type) {
         mIs = is;
         mGson = new Gson();

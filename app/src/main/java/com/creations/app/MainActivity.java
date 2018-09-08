@@ -16,11 +16,14 @@ import com.creations.app.entities.Users;
 import com.creations.livebox.Livebox;
 import com.creations.livebox.LiveboxBuilder;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
+import com.creations.livebox.datasources.fetcher.Fetcher;
+import com.creations.livebox.datasources.fetcher.FileFetcher;
 import com.creations.livebox.util.Objects;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
@@ -49,19 +52,26 @@ public class MainActivity extends AppCompatActivity {
 
         // 2 minutes TTL(time to live)
         Validator<UsersRes> ageValidator = AgeValidator.create(TimeUnit.MINUTES.toMillis(2));
+        try {
 
-        //TypeToken<List<UsersRes>> token = new TypeToken<List<UsersRes>>() {};
-        usersBox = new LiveboxBuilder<UsersRes, Users>()
-                .withKey("get_users")
-                .fetch(service::getUserList, UsersRes.class)
-                .addSource(Sources.MEMORY_LRU, ageValidator)
-                .addSource(Sources.DISK_PERSISTENT, persistentDiskValidator)
-                //.addSource(Sources.DISK_LRU, diskValidator)
-                //.addSource(DiskLruDataSource.create(UsersRes.class), diskValidator)
-                .addConverter(UsersRes.class, usersRes -> Optional.of(Users.fromUsersRes(usersRes)))
-                .retryOnFailure()
-                .build();
+            final Fetcher<UsersRes> fileFetcher =
+                    FileFetcher.create(this, "user_res.json", UsersRes.class);
 
+            //TypeToken<List<UsersRes>> token = new TypeToken<List<UsersRes>>() {};
+            usersBox = new LiveboxBuilder<UsersRes, Users>()
+                    .withKey("get_users")
+                    .fetch(fileFetcher, UsersRes.class)
+                    .addSource(Sources.MEMORY_LRU, ageValidator)
+                    .addSource(Sources.DISK_PERSISTENT, persistentDiskValidator)
+                    //.addSource(Sources.DISK_LRU, diskValidator)
+                    //.addSource(DiskLruDataSource.create(UsersRes.class), diskValidator)
+                    .addConverter(UsersRes.class, usersRes -> Optional.of(Users.fromUsersRes(usersRes)))
+                    .retryOnFailure()
+                    .build();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @SuppressLint("CheckResult")
