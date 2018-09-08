@@ -223,14 +223,27 @@ public class Livebox<I, O> {
         return Observable.just(convert(localData));
     }
 
+    private Observable<O> fetch(boolean saveToLocalSources) {
+        Observable<I> obs = Observable.defer(mFetcher::fetch);
+
+        if (saveToLocalSources) {
+            obs = obs.doOnNext(this::passFetchedDataToLocalSources);
+        }
+
+        return obs.map(this::convert)
+                .compose(Transformers.withRetry(mRetryOnFailure, mRetryStrategy))
+                .compose(withShare);
+    }
+
     // Fetch data from remote data source and pass new data to local sources.
     private Observable<O> fetchAndSave() {
         Logger.d(TAG, "fetchAndSave() called");
         return Observable
                 .defer(mFetcher::fetch)
                 .doOnNext(this::passFetchedDataToLocalSources)
+                .map(this::convert)
                 .compose(Transformers.withRetry(mRetryOnFailure, mRetryStrategy))
-                .map(this::convert);
+                .compose(withShare);
     }
 
     @SuppressWarnings("unchecked")

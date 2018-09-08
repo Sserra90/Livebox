@@ -3,9 +3,11 @@ package com.creations.livebox;
 import android.arch.core.executor.testing.InstantTaskExecutorRule;
 
 import com.creations.livebox.config.Config;
+import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
 import com.creations.livebox.datasources.fetcher.Fetcher;
+import com.creations.livebox.datasources.memory.InMemoryLruDataSource;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.AgeValidator;
@@ -361,9 +363,44 @@ public class LiveboxTest {
         assertEquals(1, nrInvocations[0]);
     }
 
+    @Test
+    public void testCustomSourceWithMultipleConverters() {
+
+        Livebox.init(new Config());
+
+        // Setup mock fetcher
+        final Fetcher<Bag<String>> bagFetcher = mockFetcher(new Bag<>("1", singletonList("1")));
+
+        final LiveboxBuilder<Bag<String>, String> builder = new LiveboxBuilder<>();
+        Livebox<Bag<String>, String> bagBox = builder
+                .withKey(TEST_KEY)
+                .fetch(bagFetcher, TYPE)
+                .addSource(new LocalDataSource<Bag<String>, Integer>() {
+                    @Override
+                    public Optional<Integer> read(String key) {
+                        return Optional.of(1);
+                    }
+
+                    public void save(String key, Bag<String> input) {
+                    }
+                }, (key, item) -> true)
+                .addConverter(Bag.class, o -> Optional.of(o.getId()))
+                .addConverter(Integer.class, o -> Optional.of(String.valueOf(o)))
+                .ignoreCache(false)
+                .build();
+
+        final TestObserver<String> bagTestObserver = new TestObserver<>();
+        bagBox.asObservable().subscribe();
+        bagBox.asObservable().subscribe(bagTestObserver);
+
+        // Assert test observer
+        assertTestObserver(bagTestObserver, "1");
+    }
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @After
     public void tearDown() {
+        ((InMemoryLruDataSource) InMemoryLruDataSource.create()).clear();
         if (RES_FILE.exists()) {
             File[] files = RES_FILE.listFiles((dir, name) -> name.startsWith(TEST_KEY));
             for (File file : files) {

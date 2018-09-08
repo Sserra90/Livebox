@@ -39,6 +39,10 @@ public class InMemoryLruDataSource<I> implements LocalDataSource<I, I> {
         mLruCache.save(key, input);
     }
 
+    public void clear() {
+        mLruCache.evictAll();
+    }
+
     @Override
     public String toString() {
         return "InMemoryLruDataSource";
@@ -64,6 +68,10 @@ public class InMemoryLruDataSource<I> implements LocalDataSource<I, I> {
             }
             //noinspection unchecked
             return instance;
+        }
+
+        void evictAll() {
+            mLruCache.evictAll();
         }
 
         I read(String key) {
