@@ -23,6 +23,10 @@ public class RetryWithDelay implements Function<Observable<Throwable>, Observabl
     private final long retryDelayMillis;
     private int retryCount;
 
+    RetryWithDelay() {
+        this(3, TimeUnit.SECONDS.toMillis(1));
+    }
+
     RetryWithDelay(final int maxRetries, final long retryDelayMillis) {
         this.maxRetries = maxRetries;
         this.retryDelayMillis = retryDelayMillis;

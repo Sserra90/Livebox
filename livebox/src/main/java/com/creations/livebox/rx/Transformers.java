@@ -1,8 +1,7 @@
 package com.creations.livebox.rx;
 
+import com.creations.livebox.LiveboxBuilder.RetryStrategy;
 import com.creations.livebox.util.Logger;
-
-import java.util.concurrent.TimeUnit;
 
 import io.reactivex.ObservableTransformer;
 
@@ -15,11 +14,13 @@ public class Transformers {
 
     private static final String TAG = "Transformers";
 
-    public static <T> ObservableTransformer<T, T> withRetry(boolean retry) {
+    public static <T> ObservableTransformer<T, T> withRetry(boolean retry, RetryStrategy strategy) {
         return upstream -> {
             if (retry) {
-                Logger.d(TAG, "Compose with retry");
-                return upstream.retryWhen(new RetryWithDelay(3, TimeUnit.SECONDS.toMillis(2)));
+                Logger.d(TAG, "Compose with retry strategy: " + strategy);
+                return upstream.retryWhen(
+                        strategy == RetryStrategy.INTERVAL ? new RetryWithDelay() : new BackoffRetry()
+                );
             }
             return upstream;
         };

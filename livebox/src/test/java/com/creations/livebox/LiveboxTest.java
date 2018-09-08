@@ -182,6 +182,12 @@ public class LiveboxTest {
         fetcherCalled(bagFetcher, 1);
     }
 
+    /**
+     * Add two local sources to Livebox.
+     * Manually enable/disable data sources with custom {@link OnOffValidator}.
+     * When the first local source is disabled, hit the second one.
+     * When both are disable {@link Fetcher#fetch()} should be called.
+     */
     @Test
     public void testFetchWithMultipleSources() {
         Livebox.init(new Config()
@@ -288,13 +294,35 @@ public class LiveboxTest {
                 .build();
 
         final TestObserver<String> bagTestObserver = new TestObserver<>();
-        bagBox.asObservable().subscribe();
         bagBox.asObservable().subscribe(bagTestObserver);
 
         // Assert test observer
         assertTestObserver(bagTestObserver, "1");
     }
 
+    @Test
+    public void testLiveDataConverter() {
+        Livebox.init(new Config());
+
+        // Setup mock fetcher
+        final Bag<String> bag = new Bag<>("1", singletonList("1"));
+        final Fetcher<Bag<String>> bagFetcher = mockFetcher(bag);
+
+        final LiveboxBuilder<Bag<String>, Bag<String>> builder = new LiveboxBuilder<>();
+        Livebox<Bag<String>, Bag<String>> bagBox = builder
+                .withKey(TEST_KEY)
+                .fetch(bagFetcher, TYPE)
+                .ignoreCache(true)
+                .build();
+
+        bagBox.asLiveData().observeForever(bag1 -> assertEquals(bag, bag1));
+    }
+
+    /**
+     * Make two requests for the same key.
+     * The second one should subscribe to the first observable and wait for the first observable
+     * to emit the result. {@link Fetcher#fetch()} should be called only one time.
+     */
     @Test
     public void testMultipleRequestsWithShare() {
         Livebox.init(new Config());

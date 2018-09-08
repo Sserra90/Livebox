@@ -3,6 +3,7 @@ package com.creations.livebox;
 import android.arch.lifecycle.LiveData;
 import android.content.Context;
 
+import com.creations.livebox.LiveboxBuilder.RetryStrategy;
 import com.creations.livebox.adapters.LiveDataAdapter;
 import com.creations.livebox.adapters.ObservableAdapter;
 import com.creations.livebox.config.Config;
@@ -120,6 +121,9 @@ public class Livebox<I, O> {
     // Indicates if we should retry the remote data source request if an error occurs
     private boolean mRetryOnFailure;
 
+    // Indicates the strategy to use when retrying defaults to INTERVAL
+    private RetryStrategy mRetryStrategy;
+
     // If an age validator was found
     private boolean mIsUsingAgeValidator;
 
@@ -156,7 +160,7 @@ public class Livebox<I, O> {
         }
     };
 
-    Livebox(BoxKey key, boolean refresh, boolean ignoreDiskCache, boolean retryOnFailure,
+    Livebox(BoxKey key, boolean refresh, boolean ignoreDiskCache, boolean retryOnFailure, RetryStrategy retryStrategy,
             boolean isUsingAgeValidator, Fetcher<I> fetcher, List<LocalDataSource<I, ?>> localSources,
             Map<LocalDataSource<I, ?>, Validator> validators,
             Map<Class<?>, Converter<?, O>> convertersMap,
@@ -170,6 +174,7 @@ public class Livebox<I, O> {
         mRefresh = refresh;
         mIgnoreDiskCache = ignoreDiskCache;
         mRetryOnFailure = retryOnFailure;
+        mRetryStrategy = retryStrategy;
         mIsUsingAgeValidator = isUsingAgeValidator;
         mFetcher = fetcher;
         mLocalSources = localSources;
@@ -224,7 +229,7 @@ public class Livebox<I, O> {
         return Observable
                 .defer(mFetcher::fetch)
                 .doOnNext(this::passFetchedDataToLocalSources)
-                .compose(Transformers.withRetry(mRetryOnFailure))
+                .compose(Transformers.withRetry(mRetryOnFailure, mRetryStrategy))
                 .map(this::convert);
     }
 
@@ -270,7 +275,7 @@ public class Livebox<I, O> {
     private Observable<O> fetchFromRemoteDataSource() {
         return mFetcher.fetch()
                 .map(this::convert)
-                .compose(Transformers.withRetry(mRetryOnFailure))
+                .compose(Transformers.withRetry(mRetryOnFailure, mRetryStrategy))
                 .compose(withShare);
     }
 

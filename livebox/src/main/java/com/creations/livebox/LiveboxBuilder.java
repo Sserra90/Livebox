@@ -46,6 +46,10 @@ import static com.creations.livebox.util.Objects.isNull;
 @SuppressWarnings({"UnusedReturnValue", "WeakerAccess"})
 public class LiveboxBuilder<I, O> {
 
+    public enum RetryStrategy {
+        INTERVAL, BACKOFF
+    }
+
     // Unique identifier for each livebox instance
     private BoxKey mKey;
 
@@ -57,6 +61,9 @@ public class LiveboxBuilder<I, O> {
 
     // Indicates if we should retry the remote data source request if an error occurs
     private boolean mRetryOnFailure = false;
+
+    // Indicates the strategy to use when retrying defaults to INTERVAL
+    private RetryStrategy mRetryStrategy = RetryStrategy.INTERVAL;
 
     // Indicates if an age validator was found
     private boolean mIsUsingAgeValidator = false;
@@ -87,7 +94,12 @@ public class LiveboxBuilder<I, O> {
     }
 
     public LiveboxBuilder<I, O> retryOnFailure() {
-        this.mRetryOnFailure = true;
+        return retryOnFailure(RetryStrategy.INTERVAL);
+    }
+
+    public LiveboxBuilder<I, O> retryOnFailure(RetryStrategy strategy) {
+        mRetryOnFailure = true;
+        mRetryStrategy = strategy;
         return this;
     }
 
@@ -172,7 +184,7 @@ public class LiveboxBuilder<I, O> {
 
     public Livebox<I, O> build() {
         return new Livebox<>(
-                mKey, mRefresh, mIgnoreCache, mRetryOnFailure, mIsUsingAgeValidator,
+                mKey, mRefresh, mIgnoreCache, mRetryOnFailure, mRetryStrategy, mIsUsingAgeValidator,
                 mFetcher, mLocalSources, mValidators, mConvertersMap,
                 mConverterFactory
         );
