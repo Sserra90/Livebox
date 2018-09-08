@@ -31,7 +31,7 @@ ext {
     rxandroid = "2.0.2"
     rxjava = "2.2.1"
     okio = "1.15.0"
-    igDiskCache  = "1.0.0@aar"
+    igDiskCache = "1.0.0@aar"
     powerMock = "1.7.4"
     lifecycle_version = "1.1.1"
 }
@@ -54,7 +54,9 @@ dependencies {
     testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: "$powerMock"
     testCompile group: 'org.powermock', name: 'powermock-api-mockito2', version: "$powerMock"
 
-    testImplementation 'org.mockito:mockito-core:2.8.9'
+    testImplementation 'org.mockito:mockito-core:2.15.0'
+    testImplementation "android.arch.core:core-testing:${lifecycle_version}"
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'

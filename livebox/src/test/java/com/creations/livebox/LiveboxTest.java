@@ -1,5 +1,7 @@
 package com.creations.livebox;
 
+import android.arch.core.executor.testing.InstantTaskExecutorRule;
+
 import com.creations.livebox.config.Config;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
@@ -12,6 +14,7 @@ import com.google.gson.reflect.TypeToken;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -37,6 +40,9 @@ import static org.mockito.Mockito.when;
  * Unit tests for {@link Livebox}
  */
 public class LiveboxTest {
+
+    @Rule
+    public InstantTaskExecutorRule rule = new InstantTaskExecutorRule();
 
     private final static String TEST_KEY = "test_key";
     private final static File RES_FILE = new File("src/test/resources");
