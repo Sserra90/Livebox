@@ -39,6 +39,12 @@ public class InMemoryLruDataSource<I> implements LocalDataSource<I, I> {
         mLruCache.save(key, input);
     }
 
+    @Override
+    public void clear(String key) {
+        Logger.d(TAG, "Clear key: " + key);
+        mLruCache.clear(key);
+    }
+
     public void clear() {
         mLruCache.evictAll();
     }
@@ -72,6 +78,10 @@ public class InMemoryLruDataSource<I> implements LocalDataSource<I, I> {
 
         void evictAll() {
             mLruCache.evictAll();
+        }
+
+        void clear(String key) {
+            mLruCache.remove(key);
         }
 
         I read(String key) {

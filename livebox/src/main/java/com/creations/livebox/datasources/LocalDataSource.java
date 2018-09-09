@@ -12,4 +12,5 @@ public interface LocalDataSource<I, T> {
 
     void save(String key, I input);
 
+    void clear(String key);
 }

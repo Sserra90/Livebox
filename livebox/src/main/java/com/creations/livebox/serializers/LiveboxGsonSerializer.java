@@ -11,8 +11,8 @@ import java.lang.reflect.Type;
 
 import okio.BufferedSource;
 
-import static com.creations.livebox.util.OkioUtils.bufferedSource;
-import static com.creations.livebox.util.OkioUtils.readerInputStreamUtf8;
+import static com.creations.livebox.util.io.OkioUtils.bufferedSource;
+import static com.creations.livebox.util.io.OkioUtils.readerInputStreamUtf8;
 
 /**
  * @author Sérgio Serra on 25/08/2018.

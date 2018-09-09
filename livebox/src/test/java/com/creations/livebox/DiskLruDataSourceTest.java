@@ -4,6 +4,7 @@ import android.os.Looper;
 
 import com.creations.livebox.config.Config;
 import com.creations.livebox.datasources.disk.DiskLruDataSource;
+import com.creations.livebox.util.Bag;
 import com.creations.livebox.util.Optional;
 import com.google.gson.reflect.TypeToken;
 

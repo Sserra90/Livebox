@@ -1,4 +1,4 @@
-package com.creations.livebox;
+package com.creations.livebox.util;
 
 import java.util.List;
 import java.util.Objects;

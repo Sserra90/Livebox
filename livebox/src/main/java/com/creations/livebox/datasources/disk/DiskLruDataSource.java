@@ -1,16 +1,14 @@
 package com.creations.livebox.datasources.disk;
 
-import com.creations.livebox.util.Logger;
 import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.serializers.Serializer;
+import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
 import com.instagram.igdiskcache.EditorOutputStream;
 import com.instagram.igdiskcache.IgDiskCache;
 import com.instagram.igdiskcache.OptionalStream;
 import com.instagram.igdiskcache.SnapshotInputStream;
-
-import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -20,7 +18,8 @@ import java.util.concurrent.Executors;
 
 import okio.BufferedSource;
 
-import static com.creations.livebox.util.OkioUtils.bufferedSource;
+import static com.creations.livebox.util.io.OkioUtils.bufferedSource;
+import static com.creations.livebox.util.io.OkioUtils.copy;
 
 /**
  * @author Sérgio Serra on 25/08/2018.
@@ -73,9 +72,15 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
         }
     }
 
+    @Override
+    public void clear(String key) {
+        Logger.d(TAG, "Clear key: " + key);
+        mDiskCache.clear(key);
+    }
+
     private void writeToCacheOutputStream(BufferedSource input, EditorOutputStream output) {
         try {
-            IOUtils.copy(input.inputStream(), new BufferedOutputStream(output));
+            copy(input.inputStream(), new BufferedOutputStream(output));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -133,6 +138,10 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
 
         OptionalStream<SnapshotInputStream> get(String key) {
             return getDiskCache().get(key);
+        }
+
+        void clear(String key) {
+            mDiskCache.remove(key);
         }
 
         private IgDiskCache getDiskCache() {

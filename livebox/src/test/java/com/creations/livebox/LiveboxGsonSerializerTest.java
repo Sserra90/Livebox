@@ -3,6 +3,7 @@ package com.creations.livebox;
 
 import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.serializers.Serializer;
+import com.creations.livebox.util.Bag;
 import com.google.gson.reflect.TypeToken;
 
 import org.junit.Assert;

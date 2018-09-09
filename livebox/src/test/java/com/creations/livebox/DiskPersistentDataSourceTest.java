@@ -4,6 +4,7 @@ import com.creations.livebox.config.Config;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.serializers.Serializer;
+import com.creations.livebox.util.Bag;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
 import com.google.gson.reflect.TypeToken;

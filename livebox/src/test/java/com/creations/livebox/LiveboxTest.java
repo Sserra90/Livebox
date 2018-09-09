@@ -3,12 +3,14 @@ package com.creations.livebox;
 import android.arch.core.executor.testing.InstantTaskExecutorRule;
 
 import com.creations.livebox.config.Config;
-import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
 import com.creations.livebox.datasources.fetcher.Fetcher;
 import com.creations.livebox.datasources.memory.InMemoryLruDataSource;
+import com.creations.livebox.util.Bag;
+import com.creations.livebox.util.FakeSource;
 import com.creations.livebox.util.Logger;
+import com.creations.livebox.util.OnOffValidator;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
@@ -375,13 +377,9 @@ public class LiveboxTest {
         Livebox<Bag<String>, String> bagBox = builder
                 .withKey(TEST_KEY)
                 .fetch(bagFetcher, TYPE)
-                .addSource(new LocalDataSource<Bag<String>, Integer>() {
-                    @Override
+                .addSource(new FakeSource<Bag<String>, Integer>() {
                     public Optional<Integer> read(String key) {
                         return Optional.of(1);
-                    }
-
-                    public void save(String key, Bag<String> input) {
                     }
                 }, (key, item) -> true)
                 .addConverter(Bag.class, o -> Optional.of(o.getId()))
@@ -400,7 +398,7 @@ public class LiveboxTest {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @After
     public void tearDown() {
-        ((InMemoryLruDataSource) InMemoryLruDataSource.create()).clear();
+        InMemoryLruDataSource.create().clear(TEST_KEY);
         if (RES_FILE.exists()) {
             File[] files = RES_FILE.listFiles((dir, name) -> name.startsWith(TEST_KEY));
             for (File file : files) {

@@ -6,8 +6,6 @@ import com.creations.livebox.serializers.Serializer;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
 
-import org.apache.commons.io.IOUtils;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -17,6 +15,8 @@ import java.lang.reflect.Type;
 
 import okio.BufferedSource;
 import okio.Okio;
+
+import static com.creations.livebox.util.io.OkioUtils.copy;
 
 /**
  * @author Sérgio Serra on 25/08/2018.
@@ -52,6 +52,16 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
     public void save(String key, I input) throws IllegalStateException {
         Logger.d(TAG, "Save to disk with  key: " + key);
         writeToDisk(key, mSerializer.serialize(input));
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @Override
+    public void clear(String key) {
+        final File outputFile = new File(mConfig.getOutputDir(), key + SUFFIX);
+        if (outputFile.exists()) {
+            Logger.d(TAG, "Delete file: " + outputFile.getName());
+            outputFile.delete();
+        }
     }
 
     private Optional<O> readFromDisk(String fileName) {
@@ -93,7 +103,7 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
                 final InputStream is = input.inputStream();
                 final OutputStream os = Okio.buffer(Okio.sink(outputFile)).outputStream()
         ) {
-            IOUtils.copy(is, os);
+            copy(is, os);
             Logger.d(TAG, "---> Success data saved in diskPersistentDataSource.");
         } catch (FileNotFoundException e) {
             e.printStackTrace();

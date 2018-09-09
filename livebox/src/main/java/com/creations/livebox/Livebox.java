@@ -16,7 +16,7 @@ import com.creations.livebox.datasources.fetcher.Fetcher;
 import com.creations.livebox.rx.Transformers;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
-import com.creations.livebox.util.Utils;
+import com.creations.livebox.util.io.Utils;
 import com.creations.livebox.validator.Journal;
 import com.creations.livebox.validator.Validator;
 
@@ -183,38 +183,46 @@ public class Livebox<I, O> {
         mConverterFactory = converterFactory;
     }
 
-    private Observable<Optional<?>> loadFromLocalSource() {
-        Logger.d(TAG, "loadFromLocalSource() called");
+    /**
+     * Reads data from local sources.
+     * <p>
+     * Iterates {@link #mLocalSources} list and for each {@link LocalDataSource} tries to read
+     * local data indexed by {@link #mKey}. If data is present, calls {@link Validator} to check
+     * if is still valid, if it is use it. Otherwise if no valid local data is found return an
+     * empty {@link Optional#empty()}.
+     *
+     * @return an Observable that will emit an {@link Optional} that may or may not contain data.
+     */
+    private Observable<Optional<?>> readFromLocalSources() {
+        Logger.d(TAG, "readFromLocalSources() called");
 
         if (mLocalSources.isEmpty()) {
             throw new IllegalStateException("No local sources found");
         }
 
-        return Observable.fromIterable(mLocalSources)
-                .map(source -> {
-                    Logger.d(TAG, "---> Hit source " + source);
+        for (LocalDataSource<I, ?> source : mLocalSources) {
+            Logger.d(TAG, "---> Hit source " + source);
 
-                    final Optional<?> data = source.read(mKey.key());
-                    if (data.isAbsent()) {
-                        return data;
-                    }
+            final Optional<?> data = source.read(mKey.key());
+            if (data.isAbsent()) {
+                continue;
+            }
 
-                    @SuppressWarnings("unchecked")
-                    boolean isValid = mValidators.get(source).validate(mKey.key(), data.get());
-                    Logger.d(TAG, "---> Data from source " + source + " is valid: " + isValid);
+            @SuppressWarnings("unchecked")
+            boolean isValid = mValidators.get(source).validate(mKey.key(), data.get());
+            if (!isValid) {
+                Logger.d(TAG, "---> Data from source " + source + " is not valid. Clear it");
+                source.clear(mKey.key());
+                continue;
+            }
 
-                    return isValid ? data : Optional.empty();
-                })
-                .filter(Optional::isPresent)
-                .first(Optional.empty())
-                .doOnSuccess(optional -> {
-                    if (optional.isPresent()) {
-                        Logger.d(TAG, "---> Found valid data");
-                        return;
-                    }
-                    Logger.d(TAG, "---> No valid data found");
-                })
-                .toObservable();
+            Logger.d(TAG, "---> Data from source " + source + " is valid");
+            return Observable.fromCallable(() -> data);
+        }
+
+        Logger.d(TAG, "---> No valid data found");
+        return Observable.fromCallable(Optional::empty);
+
     }
 
     // Maps data from local data source type -> output type
@@ -223,6 +231,12 @@ public class Livebox<I, O> {
         return Observable.just(convert(localData));
     }
 
+    /**
+     * Fetch data using {@link #mFetcher}.
+     *
+     * @param saveToLocalSources determines if data must be saved to local sources.
+     * @return a defer Observable that will emit items when subscribed
+     */
     private Observable<O> fetch(boolean saveToLocalSources) {
         Observable<I> obs = Observable.defer(mFetcher::fetch);
 
@@ -235,15 +249,22 @@ public class Livebox<I, O> {
                 .compose(withShare);
     }
 
-    // Fetch data from remote data source and pass new data to local sources.
-    private Observable<O> fetchAndSave() {
-        Logger.d(TAG, "fetchAndSave() called");
-        return Observable
-                .defer(mFetcher::fetch)
-                .doOnNext(this::passFetchedDataToLocalSources)
-                .map(this::convert)
-                .compose(Transformers.withRetry(mRetryOnFailure, mRetryStrategy))
-                .compose(withShare);
+    /**
+     * Passes data fetched when calling {@link #fetch(boolean)} to local sources.
+     *
+     * @param data the data received from {{@link #mFetcher}}
+     */
+    private void passFetchedDataToLocalSources(I data) {
+        if (mIsUsingAgeValidator) {
+            Logger.d(TAG, "---> Save in journal for key: " + mKey);
+            journal.save(mKey.key(), System.currentTimeMillis());
+        }
+
+        Logger.d(TAG, "Pass fresh data to local sources");
+        for (LocalDataSource<I, ?> localSource : mLocalSources) {
+            Logger.d(TAG, "---> Saving fresh data in: " + localSource);
+            localSource.save(mKey.key(), data);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -272,26 +293,6 @@ public class Livebox<I, O> {
         return (O) data;
     }
 
-    private void passFetchedDataToLocalSources(I data) {
-        if (mIsUsingAgeValidator) {
-            Logger.d(TAG, "---> Save in journal for key: " + mKey);
-            journal.save(mKey.key(), System.currentTimeMillis());
-        }
-
-        Logger.d(TAG, "Pass fresh data to local sources");
-        for (LocalDataSource<I, ?> localSource : mLocalSources) {
-            Logger.d(TAG, "---> Saving fresh data in: " + localSource);
-            localSource.save(mKey.key(), data);
-        }
-    }
-
-    private Observable<O> fetchFromRemoteDataSource() {
-        return mFetcher.fetch()
-                .map(this::convert)
-                .compose(Transformers.withRetry(mRetryOnFailure, mRetryStrategy))
-                .compose(withShare);
-    }
-
     @SuppressWarnings("WeakerAccess")
     public Observable<O> asObservable() {
 
@@ -306,18 +307,18 @@ public class Livebox<I, O> {
         // If ignore disk cache is true always hit remote data source
         if (mIgnoreDiskCache) {
             Logger.d(TAG, "Ignore disk cache, hit remote data source");
-            return fetchFromRemoteDataSource();
+            return fetch(false);
         }
 
         // Get data from local source.
-        Observable<O> retObservable = loadFromLocalSource()
+        Observable<O> retObservable = readFromLocalSources()
                 .flatMap((Function<Optional<?>, Observable<O>>) localResult -> {
 
                     // Local data is invalid, return a Observable that fetches remote data and
                     // saves to local data source.
                     if (localResult.isAbsent()) {
                         Logger.d(TAG, "Local data is invalid, hit remote data source and save");
-                        return fetchAndSave();
+                        return fetch(true);
                     }
 
                     // At this point we know we have valid local data,
@@ -330,7 +331,7 @@ public class Livebox<I, O> {
                         Logger.d(TAG, "Local data is valid but still hit remote data source to refresh data");
                         return Observable.concat(
                                 returnLocalData(localResult.get()),
-                                fetchAndSave()
+                                fetch(true)
                         );
                     }
                 });
@@ -340,15 +341,24 @@ public class Livebox<I, O> {
         return retObservable.compose(withShare);
     }
 
-    // Convenience method to return an Observable that observes on Android main thread
-    // and subscribes on IO scheduler.
+    /**
+     * Convenience method to return an Observable that observes on Android main thread
+     * and subscribes on IO scheduler.
+     *
+     * @return an Observable that will emit on {@link Schedulers#io()}
+     * and observer in {@link AndroidSchedulers#mainThread()}
+     */
     public Observable<O> asAndroidObservable() {
         return asObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
-    // Convenience method that returns a live data instance.
+    /**
+     * Convenience method that returns a live data instance.
+     *
+     * @return {@link LiveData} instance
+     */
     public LiveData<O> asLiveData() {
         return new LiveDataAdapter<O>().adapt(asObservable());
     }

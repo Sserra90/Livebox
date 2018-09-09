@@ -3,6 +3,7 @@ package com.creations.livebox;
 import com.creations.livebox.config.Config;
 import com.creations.livebox.datasources.fetcher.Fetcher;
 import com.creations.livebox.datasources.fetcher.FileFetcher;
+import com.creations.livebox.util.Bag;
 import com.creations.livebox.util.Logger;
 import com.google.gson.reflect.TypeToken;
 

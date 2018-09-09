@@ -49,8 +49,6 @@ dependencies {
     implementation "com.squareup.okio:okio:$okio"
     implementation "com.instagram.igdiskcache:ig-disk-cache:$igDiskCache"
 
-    implementation group: 'commons-io', name: 'commons-io', version: '2.6'
-
     testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: "$powerMock"
     testCompile group: 'org.powermock', name: 'powermock-api-mockito2', version: "$powerMock"
 

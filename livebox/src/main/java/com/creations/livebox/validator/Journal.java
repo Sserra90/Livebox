@@ -2,7 +2,7 @@ package com.creations.livebox.validator;
 
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
-import com.creations.livebox.util.Utils;
+import com.creations.livebox.util.io.Utils;
 
 import java.io.BufferedWriter;
 import java.io.File;
