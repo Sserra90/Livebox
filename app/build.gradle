@@ -44,11 +44,14 @@ ext {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation project(":livebox")
+    //implementation project(":livebox")
 
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     implementation 'com.android.support:design:27.1.1'
+
+    // Livebox
+    implementation 'org.bitbucket.Sserra:livebox:dev-SNAPSHOT'
 
     // Room
     implementation "android.arch.persistence.room:runtime:$room"
