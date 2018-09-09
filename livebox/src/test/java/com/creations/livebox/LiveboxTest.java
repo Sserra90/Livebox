@@ -399,7 +399,31 @@ public class LiveboxTest {
     public void testReadFromLocalSourceAndRefresh() {
         Livebox.init(new Config());
 
+        // Setup mock fetcher
+        final Bag<String> bag = new Bag<>("1", new ArrayList<>());
+        final Fetcher<Bag<String>> bagFetcher = mockFetcher(bag);
 
+        final LiveboxBuilder<Bag<String>, Bag<String>> builder = new LiveboxBuilder<>();
+        Livebox<Bag<String>, Bag<String>> bagBox = builder
+                .withKey(TEST_KEY)
+                .fetch(bagFetcher, TYPE)
+                .addSource(Sources.MEMORY_LRU, (Validator<Bag<String>>) (key, item) -> true)
+                .ignoreCache(false)
+                .refresh(true)
+                .build();
+
+        final TestObserver<Bag<String>> bagTestObserver = new TestObserver<>();
+        bagBox.asObservable().subscribe();
+        bagBox.asObservable().subscribe(bagTestObserver);
+
+        //noinspection unchecked
+        bagTestObserver
+                .assertNoErrors()
+                .assertValueCount(2)
+                .assertValues(bag, bag);
+
+        // Verify fetcher was called twice
+        fetcherCalled(bagFetcher, 2);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
