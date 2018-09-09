@@ -395,6 +395,13 @@ public class LiveboxTest {
         assertTestObserver(bagTestObserver, "1");
     }
 
+    @Test
+    public void testReadFromLocalSourceAndRefresh() {
+        Livebox.init(new Config());
+
+
+    }
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @After
     public void tearDown() {

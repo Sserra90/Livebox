@@ -34,12 +34,14 @@ ext {
     igDiskCache = "1.0.0@aar"
     powerMock = "1.7.4"
     lifecycle_version = "1.1.1"
+    mockito = "2.15.0"
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation "android.arch.lifecycle:extensions:$lifecycle_version"
+    implementation "android.arch.lifecycle:reactivestreams:$lifecycle_version"
 
     implementation "com.google.code.gson:gson:$gson"
 
@@ -52,10 +54,8 @@ dependencies {
     testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: "$powerMock"
     testCompile group: 'org.powermock', name: 'powermock-api-mockito2', version: "$powerMock"
 
-    testImplementation 'org.mockito:mockito-core:2.15.0'
+    testImplementation "org.mockito:mockito-core:2.15.0"
     testImplementation "android.arch.core:core-testing:${lifecycle_version}"
 
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }

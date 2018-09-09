@@ -1,42 +1,22 @@
 package com.creations.livebox.adapters;
 
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.LiveDataReactiveStreams;
 
+import io.reactivex.BackpressureStrategy;
 import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
 
 /**
- * @author Sérgio Serra on 27/08/2018.
- * Criations
+ * @author Sérgio Serra.
  * sergioserra99@gmail.com
+ * <p>
+ * Converts an {@link Observable} to {@link LiveData} instance using {@link LiveDataReactiveStreams}
  */
 public class LiveDataAdapter<T> implements ObservableAdapter<T, LiveData<T>> {
 
     @Override
     public LiveData<T> adapt(Observable<T> observable) {
-        MutableLiveData<T> liveData = new MutableLiveData<>();
-        observable.subscribe(new Observer<T>() {
-            @Override
-            public void onSubscribe(Disposable d) {
-            }
-
-            @Override
-            public void onNext(T t) {
-                liveData.postValue(t);
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                liveData.postValue(null);
-            }
-
-            @Override
-            public void onComplete() {
-            }
-        });
-        return liveData;
+        return LiveDataReactiveStreams.fromPublisher(observable.toFlowable(BackpressureStrategy.BUFFER));
     }
 
 }
