@@ -22,6 +22,7 @@ import com.creations.livebox.util.Objects;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
+import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -78,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     private void getUsers() {
 
         //liveData.observe(this, users -> Log.d(TAG, "UsersRes: " + users));
-        usersBox.asAndroidObservable()
+        usersBox.scoped(AndroidLifecycleScopeProvider.from(this))
                 .subscribe(users -> Log.d(TAG, "UsersRes: " + users), Throwable::printStackTrace);
 
     }

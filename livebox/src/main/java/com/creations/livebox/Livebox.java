@@ -4,6 +4,7 @@ import android.arch.lifecycle.LiveData;
 import android.content.Context;
 
 import com.creations.livebox.LiveboxBuilder.RetryStrategy;
+import com.creations.livebox.adapters.AutoDisposeAdapter;
 import com.creations.livebox.adapters.LiveDataAdapter;
 import com.creations.livebox.adapters.ObservableAdapter;
 import com.creations.livebox.config.Config;
@@ -19,6 +20,8 @@ import com.creations.livebox.util.Optional;
 import com.creations.livebox.util.io.Utils;
 import com.creations.livebox.validator.Journal;
 import com.creations.livebox.validator.Validator;
+import com.uber.autodispose.ObservableSubscribeProxy;
+import com.uber.autodispose.lifecycle.LifecycleScopeProvider;
 
 import java.io.File;
 import java.util.List;
@@ -361,6 +364,15 @@ public class Livebox<I, O> {
      */
     public LiveData<O> asLiveData() {
         return new LiveDataAdapter<O>().adapt(asObservable());
+    }
+
+    /**
+     * Scopes the Observable within {@param LifecycleScopeProvider}
+     * @param scopeProvider the scope provider
+     * @return ObservableSubscribeProxy
+     */
+    public ObservableSubscribeProxy<O> scoped(LifecycleScopeProvider scopeProvider) {
+        return AutoDisposeAdapter.<O>android(scopeProvider).adapt(asObservable());
     }
 
     // Uses passed adapter to adapt the result observable.
