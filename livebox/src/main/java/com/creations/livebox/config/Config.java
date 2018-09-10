@@ -3,6 +3,7 @@ package com.creations.livebox.config;
 
 import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
+import com.creations.livebox.serializers.Serializer;
 
 import java.io.File;
 
@@ -12,6 +13,7 @@ public final class Config {
 
     private DiskLruDataSource.Config mLruConfig;
     private DiskPersistentDataSource.Config mPersistentConfig;
+    private Serializer mSerializer;
     private File mJournalDir;
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -35,6 +37,13 @@ public final class Config {
         return this;
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public Config addSerializer(Serializer serializer) {
+        ObjectHelper.requireNonNull(serializer, "Serializer instance cannot be null");
+        mSerializer = serializer;
+        return this;
+    }
+
     public File getJournalDir() {
         return mJournalDir;
     }
@@ -46,4 +55,9 @@ public final class Config {
     public DiskPersistentDataSource.Config getPersistentConfig() {
         return mPersistentConfig;
     }
+
+    public Serializer getSerializer() {
+        return mSerializer;
+    }
+
 }

@@ -1,7 +1,6 @@
 package com.creations.livebox.datasources.disk;
 
 import com.creations.livebox.datasources.LocalDataSource;
-import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.serializers.Serializer;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
@@ -31,19 +30,21 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
     private static final String TAG = "DiskLruDataSource";
     private static DiskLruDataSource.Config mDiskCacheConfig;
     private LiveboxDiskCache mDiskCache;
-    private Serializer<I> mSerializer;
+    private Serializer mSerializer;
+    private Type mType;
 
-    private DiskLruDataSource(Type type) {
+    private DiskLruDataSource(Serializer serializer, Type type) {
         mDiskCache = LiveboxDiskCache.getInstance(mDiskCacheConfig);
-        mSerializer = LiveboxGsonSerializer.create(type);
+        mSerializer = serializer;
+        mType = type;
     }
 
-    public static <I, O> DiskLruDataSource<I, O> create(Type type) {
-        return new DiskLruDataSource<>(type);
+    public static <I, O> DiskLruDataSource<I, O> create(Serializer serializer, Type type) {
+        return new DiskLruDataSource<>(serializer, type);
     }
 
     public static void setConfig(Config config) {
-        DiskLruDataSource.mDiskCacheConfig = config;
+        mDiskCacheConfig = config;
     }
 
     @Override
@@ -51,8 +52,7 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
         OptionalStream<SnapshotInputStream> iis = mDiskCache.get(key);
         Logger.d(TAG, "Read from disk cache is present: " + iis.isPresent() + " with  key: " + key);
         if (iis.isPresent()) {
-            //noinspection unchecked
-            O data = (O) mSerializer.deserialize(bufferedSource(iis.get()));
+            O data = mSerializer.deserialize(bufferedSource(iis.get()), mType);
             return Optional.ofNullable(data);
         }
         return Optional.empty();
@@ -64,7 +64,7 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
         Logger.d(TAG, "Save to disk cache is present: " + oos.isPresent() + " with  key: " + key);
         if (oos.isPresent()) {
             try {
-                writeToCacheOutputStream(mSerializer.serialize(input), oos.get());
+                writeToCacheOutputStream(mSerializer.serialize(input, mType), oos.get());
                 oos.get().commit();
             } finally {
                 oos.get().abortUnlessCommitted();

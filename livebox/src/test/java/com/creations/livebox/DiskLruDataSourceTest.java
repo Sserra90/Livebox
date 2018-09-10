@@ -4,8 +4,10 @@ import android.os.Looper;
 
 import com.creations.livebox.config.Config;
 import com.creations.livebox.datasources.disk.DiskLruDataSource;
+import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.util.Bag;
 import com.creations.livebox.util.Optional;
+import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import junit.framework.Assert;
@@ -60,7 +62,10 @@ public class DiskLruDataSourceTest {
         };
 
         // Exercise
-        final DiskLruDataSource<Bag<String>, Bag<String>> dataSource = DiskLruDataSource.create(typeToken.getType());
+        final DiskLruDataSource<Bag<String>, Bag<String>> dataSource = DiskLruDataSource.create(
+                LiveboxGsonSerializer.create(new Gson()),
+                typeToken.getType()
+        );
         dataSource.save(key, bag);
         final Optional<Bag<String>> newBagOpt = dataSource.read(key);
 

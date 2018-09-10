@@ -3,7 +3,6 @@ package com.creations.livebox.serializers;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 
 import java.io.InputStreamReader;
@@ -19,37 +18,35 @@ import static com.creations.livebox.util.io.OkioUtils.readerInputStreamUtf8;
  * Criations
  * sergioserra99@gmail.com
  */
-public class LiveboxGsonSerializer<T> implements Serializer<T> {
+public class LiveboxGsonSerializer implements Serializer {
 
-    private Type mType;
-    private Gson gson;
+    private Gson mGson;
 
-    private LiveboxGsonSerializer(Type type) {
-        mType = type;
-        gson = new Gson();
+    private LiveboxGsonSerializer(Gson gson) {
+        mGson = gson;
     }
 
-    public static <T> LiveboxGsonSerializer<T> create(TypeToken mType) {
-        return new LiveboxGsonSerializer<>(mType.getType());
+    public static LiveboxGsonSerializer create() {
+        return new LiveboxGsonSerializer(new Gson());
     }
 
-    public static <T> LiveboxGsonSerializer<T> create(Type mType) {
-        return new LiveboxGsonSerializer<>(mType);
-    }
-
-    @Override
-    public BufferedSource serialize(T input) {
-        return bufferedSource(readerInputStreamUtf8(gson.toJson(input, mType)));
+    public static LiveboxGsonSerializer create(Gson gson) {
+        return new LiveboxGsonSerializer(gson);
     }
 
     @Override
-    public T deserialize(BufferedSource source) {
+    public <T> BufferedSource serialize(T input, Type type) {
+        return bufferedSource(readerInputStreamUtf8(mGson.toJson(input, type)));
+    }
+
+    @Override
+    public <T> T deserialize(BufferedSource source, Type type) {
         if (source == null) {
             return null;
         }
 
         try {
-            return gson.fromJson(new JsonReader(new InputStreamReader(source.inputStream())), mType);
+            return mGson.fromJson(new JsonReader(new InputStreamReader(source.inputStream())), type);
         } catch (JsonIOException e) {
             e.printStackTrace();
         } catch (JsonSyntaxException e) {

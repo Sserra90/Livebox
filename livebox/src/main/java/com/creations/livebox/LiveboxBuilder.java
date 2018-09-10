@@ -12,7 +12,6 @@ import com.creations.livebox.datasources.fetcher.Fetcher;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
-import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -113,20 +112,10 @@ public class LiveboxBuilder<I, O> {
         return this;
     }
 
-    public LiveboxBuilder<I, O> fetch(@NonNull Fetcher<I> source, TypeToken type) {
-        fetch(source, type.getType());
-        return this;
-    }
-
     public LiveboxBuilder<I, O> fetch(@NonNull Fetcher<I> source, Type type) {
         requireNonNull(source, "Fetcher cannot be null");
-
         mFetcher = source;
-
-        // Add LiveboxDataSourceFactory to factories list, we need to know the Type
-        // to before instantiation time
-        mDataSourceFactoryList.add(new LiveboxDataSourceFactory<>(type));
-
+        mDataSourceFactoryList.add(new LiveboxDataSourceFactory<>(Livebox.getConfig().getSerializer(), type));
         return this;
     }
 

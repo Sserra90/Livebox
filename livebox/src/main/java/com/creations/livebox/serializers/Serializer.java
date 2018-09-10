@@ -1,5 +1,7 @@
 package com.creations.livebox.serializers;
 
+import java.lang.reflect.Type;
+
 import okio.BufferedSource;
 
 /**
@@ -7,8 +9,8 @@ import okio.BufferedSource;
  * Criations
  * sergioserra99@gmail.com
  */
-public interface Serializer<T> {
-    BufferedSource serialize(T input);
+public interface Serializer {
+    <T> BufferedSource serialize(T input, Type type);
 
-    T deserialize(BufferedSource source);
+    <T> T deserialize(BufferedSource source, Type type);
 }

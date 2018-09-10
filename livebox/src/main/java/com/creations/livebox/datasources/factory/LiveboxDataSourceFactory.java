@@ -1,9 +1,10 @@
 package com.creations.livebox.datasources.factory;
 
+import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.memory.InMemoryLruDataSource;
-import com.creations.livebox.datasources.LocalDataSource;
+import com.creations.livebox.serializers.Serializer;
 import com.creations.livebox.util.Optional;
 
 import java.lang.reflect.Type;
@@ -19,10 +20,12 @@ import static com.creations.livebox.datasources.factory.LiveboxDataSourceFactory
  */
 public final class LiveboxDataSourceFactory<I> implements DataSourceFactory<I> {
 
-    private Type mTargetType;
+    private Serializer mSerializer;
+    private Type mType;
 
-    public LiveboxDataSourceFactory(Type type) {
-        this.mTargetType = type;
+    public LiveboxDataSourceFactory(Serializer serializer, Type type) {
+        mType = type;
+        mSerializer = serializer;
     }
 
     @Override
@@ -30,14 +33,14 @@ public final class LiveboxDataSourceFactory<I> implements DataSourceFactory<I> {
         LocalDataSource<I, T> dataSource = null;
         switch (id) {
             case DISK_LRU:
-                dataSource = DiskLruDataSource.create(mTargetType);
+                dataSource = DiskLruDataSource.create(mSerializer, mType);
                 break;
             case MEMORY_LRU:
                 //noinspection unchecked
                 dataSource = (LocalDataSource<I, T>) InMemoryLruDataSource.create();
                 break;
             case DISK_PERSISTENT:
-                dataSource = DiskPersistentDataSource.create(mTargetType);
+                dataSource = DiskPersistentDataSource.create(mSerializer, mType);
                 break;
         }
         return Optional.ofNullable(dataSource);

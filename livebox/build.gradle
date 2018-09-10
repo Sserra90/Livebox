@@ -52,6 +52,8 @@ dependencies {
     implementation "com.uber.autodispose:autodispose-lifecycle:$autoDispose"
 
     implementation "com.google.code.gson:gson:$gson"
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.7.9.4'
 
     implementation "io.reactivex.rxjava2:rxandroid:$rxandroid"
     implementation "io.reactivex.rxjava2:rxjava:$rxjava"

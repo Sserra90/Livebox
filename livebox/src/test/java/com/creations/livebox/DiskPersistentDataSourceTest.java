@@ -7,6 +7,7 @@ import com.creations.livebox.serializers.Serializer;
 import com.creations.livebox.util.Bag;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
+import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import junit.framework.Assert;
@@ -54,7 +55,7 @@ public class DiskPersistentDataSourceTest {
 
         // Exercise
         final DiskPersistentDataSource<Bag<String>, Bag<String>> dataSource
-                = DiskPersistentDataSource.create(typeToken.getType());
+                = DiskPersistentDataSource.create(LiveboxGsonSerializer.create(new Gson()), typeToken.getType());
         dataSource.save(key, bag);
         final Optional<Bag<String>> newBagOpt = dataSource.read(key);
 
@@ -72,13 +73,13 @@ public class DiskPersistentDataSourceTest {
 
         TypeToken<List<Bag<String>>> bagType = new TypeToken<List<Bag<String>>>() {
         };
-        final Serializer<List<Bag<String>>> serializer = LiveboxGsonSerializer.create(bagType);
-        final List<Bag<String>> bags = serializer.deserialize(source);
+        final Serializer serializer = LiveboxGsonSerializer.create(new Gson());
+        final List<Bag<String>> bags = serializer.deserialize(source, bagType.getType());
 
         // Exercise
         final String key = "2000";
         final DiskPersistentDataSource<List<Bag<String>>, List<Bag<String>>> dataSource
-                = DiskPersistentDataSource.create(bagType.getType());
+                = DiskPersistentDataSource.create(serializer, bagType.getType());
         dataSource.save(key, bags);
         final Optional<List<Bag<String>>> newBagOpt = dataSource.read(key);
 

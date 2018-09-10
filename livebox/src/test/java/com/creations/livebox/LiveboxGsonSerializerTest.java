@@ -4,6 +4,7 @@ package com.creations.livebox;
 import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.serializers.Serializer;
 import com.creations.livebox.util.Bag;
+import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import org.junit.Assert;
@@ -33,8 +34,8 @@ public class LiveboxGsonSerializerTest {
         final Bag<String> bag = new Bag<>("100", values);
 
         // Exercise
-        final Serializer<Bag<String>> serializer = LiveboxGsonSerializer.create(Bag.class);
-        final Bag newBag = serializer.deserialize(serializer.serialize(bag));
+        final Serializer serializer = LiveboxGsonSerializer.create(new Gson());
+        final Bag newBag = serializer.deserialize(serializer.serialize(bag, Bag.class), Bag.class);
 
         // Verify
         Assert.assertEquals(bag, newBag);
@@ -51,10 +52,10 @@ public class LiveboxGsonSerializerTest {
         // Exercise
         TypeToken<List<Bag<String>>> bagType = new TypeToken<List<Bag<String>>>() {
         };
-        final Serializer<List<Bag<String>>> serializer = LiveboxGsonSerializer.create(bagType);
-        final List<Bag<String>> bags = serializer.deserialize(source);
+        final Serializer serializer = LiveboxGsonSerializer.create(new Gson());
+        final List<Bag<String>> bags = serializer.deserialize(source, bagType.getType());
 
-        final BufferedSource serializeSource = serializer.serialize(bags);
+        final BufferedSource serializeSource = serializer.serialize(bags, bagType.getType());
 
         Assert.assertTrue(serializeSource.readByteArray().length > 0);
         Assert.assertEquals(600, bags.size());

@@ -1,7 +1,6 @@
 package com.creations.livebox.datasources.disk;
 
 import com.creations.livebox.datasources.LocalDataSource;
-import com.creations.livebox.serializers.LiveboxGsonSerializer;
 import com.creations.livebox.serializers.Serializer;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
@@ -28,18 +27,20 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
     private static final String SUFFIX = "_livebox.json";
     private static final String TAG = "DiskPersistentDataSour";
     private static Config mConfig;
-    private Serializer<I> mSerializer;
+    private Serializer mSerializer;
+    private Type mType;
 
-    private DiskPersistentDataSource(Type type) {
-        mSerializer = LiveboxGsonSerializer.create(type);
+    private DiskPersistentDataSource(Serializer serializer, Type type) {
+        mSerializer = serializer;
+        mType = type;
     }
 
-    public static <I, O> DiskPersistentDataSource<I, O> create(Type type) {
-        return new DiskPersistentDataSource<>(type);
+    public static <I, O> DiskPersistentDataSource<I, O> create(Serializer serializer, Type type) {
+        return new DiskPersistentDataSource<>(serializer, type);
     }
 
     public static void setConfig(Config config) {
-        DiskPersistentDataSource.mConfig = config;
+        mConfig = config;
     }
 
     @Override
@@ -51,7 +52,7 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
     @Override
     public void save(String key, I input) throws IllegalStateException {
         Logger.d(TAG, "Save to disk with  key: " + key);
-        writeToDisk(key, mSerializer.serialize(input));
+        writeToDisk(key, mSerializer.serialize(input, mType));
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -76,8 +77,7 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
         O data = null;
         try {
             final BufferedSource bs = Okio.buffer(Okio.source(outputFile));
-            //noinspection unchecked
-            data = (O) mSerializer.deserialize(bs);
+            data = mSerializer.deserialize(bs, mType);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

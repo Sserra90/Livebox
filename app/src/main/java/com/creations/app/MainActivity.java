@@ -22,9 +22,12 @@ import com.creations.livebox.util.Objects;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
@@ -59,9 +62,13 @@ public class MainActivity extends AppCompatActivity {
                     FileFetcher.create(this, "user_res.json", UsersRes.class);
 
             //TypeToken<List<UsersRes>> token = new TypeToken<List<UsersRes>>() {};
+            TypeReference typeReference = new TypeReference<UsersRes>() {
+            };
+            Type type = TypeFactory.defaultInstance().constructType(typeReference);
             usersBox = new LiveboxBuilder<UsersRes, Users>()
                     .withKey("get_users")
-                    .fetch(fileFetcher, UsersRes.class)
+                    //.fetch(fileFetcher, UsersRes.class)
+                    .fetch(fileFetcher, type)
                     .addSource(Sources.MEMORY_LRU, ageValidator)
                     .addSource(Sources.DISK_PERSISTENT, persistentDiskValidator)
                     //.addSource(Sources.DISK_LRU, diskValidator)

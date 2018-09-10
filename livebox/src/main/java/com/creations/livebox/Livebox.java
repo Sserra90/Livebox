@@ -15,6 +15,7 @@ import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.fetcher.Fetcher;
 import com.creations.livebox.rx.Transformers;
+import com.creations.livebox.serializers.LiveboxJacksonSerializer;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.util.io.Utils;
@@ -36,7 +37,6 @@ import io.reactivex.ObservableTransformer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Function;
-import io.reactivex.internal.functions.ObjectHelper;
 import io.reactivex.schedulers.Schedulers;
 
 import static com.creations.livebox.util.Objects.nonNull;
@@ -70,36 +70,21 @@ public class Livebox<I, O> {
                 .journalDir(Utils.getCacheDirectory(context, JOURNAL_DIR))
                 .lruCacheConfig(new DiskLruDataSource.Config(lruCacheDir, lurCacheSize))
                 .persistentCacheConfig(new DiskPersistentDataSource.Config(persistentCacheDir))
+                .addSerializer(LiveboxJacksonSerializer.create())
         );
     }
 
     @SuppressWarnings("WeakerAccess")
     public static void init(Config config) {
         mInit = true;
+        mConfig = config;
 
-        if (nonNull(config.getPersistentConfig())) {
-            persistentCacheConfig(config.getPersistentConfig());
-        }
-
-        if (nonNull(config.getLruConfig())) {
-            lruCacheConfig(config.getLruConfig());
-        }
+        DiskPersistentDataSource.setConfig(getConfig().getPersistentConfig());
+        DiskLruDataSource.setConfig(getConfig().getLruConfig());
 
         if (nonNull(config.getJournalDir())) {
             journal = Journal.create(config.getJournalDir());
         }
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void lruCacheConfig(DiskLruDataSource.Config diskCacheConfig) {
-        ObjectHelper.requireNonNull(diskCacheConfig, "Lru disk cache config cannot be null");
-        DiskLruDataSource.setConfig(diskCacheConfig);
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void persistentCacheConfig(DiskPersistentDataSource.Config diskCacheConfig) {
-        ObjectHelper.requireNonNull(diskCacheConfig, "Persistent disk cache config cannot be null");
-        DiskPersistentDataSource.setConfig(diskCacheConfig);
     }
 
     // Keeps a record of in-flight requests.
@@ -107,6 +92,8 @@ public class Livebox<I, O> {
 
     // Journal that keeps a log of requests timestamps
     public static Journal journal;
+
+    private static Config mConfig;
 
     // Indicates if Livebox was initialized
     private static boolean mInit = false;
@@ -368,6 +355,7 @@ public class Livebox<I, O> {
 
     /**
      * Scopes the Observable within {@param LifecycleScopeProvider}
+     *
      * @param scopeProvider the scope provider
      * @return ObservableSubscribeProxy
      */
@@ -426,5 +414,9 @@ public class Livebox<I, O> {
         public String toString() {
             return mKey;
         }
+    }
+
+    public static Config getConfig() {
+        return mConfig;
     }
 }
