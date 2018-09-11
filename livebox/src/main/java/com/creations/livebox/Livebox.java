@@ -15,12 +15,12 @@ import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.fetcher.Fetcher;
 import com.creations.livebox.rx.Transformers;
-import com.creations.livebox.serializers.LiveboxJacksonSerializer;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.util.io.Utils;
 import com.creations.livebox.validator.Journal;
 import com.creations.livebox.validator.Validator;
+import com.creations.livebox_common.serializers.Serializer;
 import com.uber.autodispose.ObservableSubscribeProxy;
 import com.uber.autodispose.lifecycle.LifecycleScopeProvider;
 
@@ -57,7 +57,7 @@ public class Livebox<I, O> {
     private static final int DEFAULT_DISK_CACHE_SIZE = 1024 * 1024 * 100; // 100MB
     private static final int DEFAULT_DISK_CACHE_SIZE_PERCENT = 10; // 10% of free disk space
 
-    public static void init(Context context) {
+    public static void init(Context context, Serializer serializer) {
         final File lruCacheDir = Utils.getCacheDirectory(context, LRU_DISK_CACHE_DIR);
         final long lurCacheSize = Utils.getCacheSizeInBytes(
                 lruCacheDir,
@@ -70,7 +70,7 @@ public class Livebox<I, O> {
                 .journalDir(Utils.getCacheDirectory(context, JOURNAL_DIR))
                 .lruCacheConfig(new DiskLruDataSource.Config(lruCacheDir, lurCacheSize))
                 .persistentCacheConfig(new DiskPersistentDataSource.Config(persistentCacheDir))
-                .addSerializer(LiveboxJacksonSerializer.create())
+                .addSerializer(serializer)
         );
     }
 

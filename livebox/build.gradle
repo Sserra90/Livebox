@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 
 // Jitpack group
-group='org.bitbucket.Sserra:livebox'
+group = 'org.bitbucket.Sserra:livebox'
 
 android {
     compileSdkVersion 27
@@ -31,19 +31,21 @@ android {
 }
 
 ext {
-    gson = "2.8.2"
     rxandroid = "2.0.2"
     rxjava = "2.2.1"
-    okio = "1.15.0"
     igDiskCache = "1.0.0@aar"
     powerMock = "1.7.4"
     lifecycle_version = "1.1.1"
     mockito = "2.15.0"
     autoDispose = "1.0.0-RC2"
+    jackson = "2.7.9.4"
+    gson = "2.8.2"
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    api project(":livebox-common")
 
     implementation "android.arch.lifecycle:extensions:$lifecycle_version"
     implementation "android.arch.lifecycle:reactivestreams:$lifecycle_version"
@@ -51,21 +53,21 @@ dependencies {
     implementation "com.uber.autodispose:autodispose:$autoDispose"
     implementation "com.uber.autodispose:autodispose-lifecycle:$autoDispose"
 
-    implementation "com.google.code.gson:gson:$gson"
-    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.7.9.4'
-
     implementation "io.reactivex.rxjava2:rxandroid:$rxandroid"
     implementation "io.reactivex.rxjava2:rxjava:$rxjava"
 
-    implementation "com.squareup.okio:okio:$okio"
     implementation "com.instagram.igdiskcache:ig-disk-cache:$igDiskCache"
 
-    testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: "$powerMock"
-    testCompile group: 'org.powermock', name: 'powermock-api-mockito2', version: "$powerMock"
+    testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: "$powerMock"
+    testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: "$powerMock"
 
     testImplementation "org.mockito:mockito-core:2.15.0"
     testImplementation "android.arch.core:core-testing:${lifecycle_version}"
+    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "$jackson"
+    testImplementation "com.google.code.gson:gson:$gson"
+
+    testImplementation project(":serializer-gson")
+
 
     testImplementation 'junit:junit:4.12'
 }

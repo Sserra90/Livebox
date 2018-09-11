@@ -4,8 +4,8 @@ import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.memory.InMemoryLruDataSource;
-import com.creations.livebox.serializers.Serializer;
 import com.creations.livebox.util.Optional;
+import com.creations.livebox_common.serializers.Serializer;
 
 import java.lang.reflect.Type;
 

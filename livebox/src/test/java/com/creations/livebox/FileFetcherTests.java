@@ -3,14 +3,14 @@ package com.creations.livebox;
 import com.creations.livebox.config.Config;
 import com.creations.livebox.datasources.fetcher.Fetcher;
 import com.creations.livebox.datasources.fetcher.FileFetcher;
-import com.creations.livebox.util.Bag;
 import com.creations.livebox.util.Logger;
+import com.creations.livebox_common.util.Bag;
+import com.creations.serializer_gson.LiveboxGsonSerializer;
 import com.google.gson.reflect.TypeToken;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
 
@@ -37,7 +37,7 @@ public class FileFetcherTests {
         Livebox.init(new Config());
 
         final Fetcher<Bag<String>> bagFetcher =
-                FileFetcher.create(new File("src/test/resources/bag.json"), TYPE);
+                FileFetcher.create("src/test/resources/bag.json", TYPE, LiveboxGsonSerializer.create());
 
         final LiveboxBuilder<Bag<String>, Bag<String>> builder = new LiveboxBuilder<>();
         Livebox<Bag<String>, Bag<String>> bagBox = builder

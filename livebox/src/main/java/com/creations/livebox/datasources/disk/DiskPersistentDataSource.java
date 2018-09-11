@@ -1,9 +1,9 @@
 package com.creations.livebox.datasources.disk;
 
 import com.creations.livebox.datasources.LocalDataSource;
-import com.creations.livebox.serializers.Serializer;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
+import com.creations.livebox_common.serializers.Serializer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,7 +15,7 @@ import java.lang.reflect.Type;
 import okio.BufferedSource;
 import okio.Okio;
 
-import static com.creations.livebox.util.io.OkioUtils.copy;
+import static com.creations.livebox_common.util.OkioUtils.copy;
 
 /**
  * @author Sérgio Serra on 25/08/2018.

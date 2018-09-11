@@ -1,13 +1,12 @@
-package com.creations.livebox;
+package com.creations.serializer_gson;
 
-
-import com.creations.livebox.serializers.LiveboxGsonSerializer;
-import com.creations.livebox.serializers.Serializer;
-import com.creations.livebox.util.Bag;
+import com.creations.livebox_common.serializers.Serializer;
+import com.creations.livebox_common.util.Bag;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import org.junit.Assert;
+import junit.framework.Assert;
+
 import org.junit.Test;
 
 import java.io.IOException;

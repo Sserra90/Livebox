@@ -1,9 +1,9 @@
 package com.creations.livebox.datasources.disk;
 
 import com.creations.livebox.datasources.LocalDataSource;
-import com.creations.livebox.serializers.Serializer;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
+import com.creations.livebox_common.serializers.Serializer;
 import com.instagram.igdiskcache.EditorOutputStream;
 import com.instagram.igdiskcache.IgDiskCache;
 import com.instagram.igdiskcache.OptionalStream;
@@ -17,8 +17,8 @@ import java.util.concurrent.Executors;
 
 import okio.BufferedSource;
 
-import static com.creations.livebox.util.io.OkioUtils.bufferedSource;
-import static com.creations.livebox.util.io.OkioUtils.copy;
+import static com.creations.livebox_common.util.OkioUtils.bufferedSource;
+import static com.creations.livebox_common.util.OkioUtils.copy;
 
 /**
  * @author Sérgio Serra on 25/08/2018.

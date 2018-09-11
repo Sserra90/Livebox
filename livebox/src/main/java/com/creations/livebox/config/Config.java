@@ -3,7 +3,7 @@ package com.creations.livebox.config;
 
 import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
-import com.creations.livebox.serializers.Serializer;
+import com.creations.livebox_common.serializers.Serializer;
 
 import java.io.File;
 

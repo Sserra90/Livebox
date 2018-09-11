@@ -1,5 +1,7 @@
-package com.creations.livebox.serializers;
+package com.creations.convert_jackson;
 
+import com.creations.livebox_common.serializers.Serializer;
+import com.creations.livebox_common.util.OkioUtils;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
@@ -11,8 +13,6 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 
 import okio.BufferedSource;
-
-import static com.creations.livebox.util.io.OkioUtils.bufferedSource;
 
 /**
  * @author Sérgio Serra on 25/08/2018.
@@ -27,11 +27,11 @@ public class LiveboxJacksonSerializer implements Serializer {
         mObjectMapper = objectMapper;
     }
 
-    public static LiveboxJacksonSerializer create() {
+    public static Serializer create() {
         return new LiveboxJacksonSerializer(new ObjectMapper());
     }
 
-    public static LiveboxJacksonSerializer create(ObjectMapper objectMapper) {
+    public static Serializer create(ObjectMapper objectMapper) {
         return new LiveboxJacksonSerializer(objectMapper);
     }
 
@@ -59,7 +59,7 @@ public class LiveboxJacksonSerializer implements Serializer {
     @Override
     public <T> BufferedSource serialize(T input, Type type) {
         try {
-            return bufferedSource(new ByteArrayInputStream(mObjectMapper.writeValueAsBytes(input)));
+            return OkioUtils.bufferedSource(new ByteArrayInputStream(mObjectMapper.writeValueAsBytes(input)));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

@@ -1,5 +1,6 @@
-package com.creations.livebox.serializers;
+package com.creations.serializer_gson;
 
+import com.creations.livebox_common.serializers.Serializer;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
@@ -10,8 +11,8 @@ import java.lang.reflect.Type;
 
 import okio.BufferedSource;
 
-import static com.creations.livebox.util.io.OkioUtils.bufferedSource;
-import static com.creations.livebox.util.io.OkioUtils.readerInputStreamUtf8;
+import static com.creations.livebox_common.util.OkioUtils.bufferedSource;
+import static com.creations.livebox_common.util.OkioUtils.readerInputStreamUtf8;
 
 /**
  * @author Sérgio Serra on 25/08/2018.
@@ -26,11 +27,11 @@ public class LiveboxGsonSerializer implements Serializer {
         mGson = gson;
     }
 
-    public static LiveboxGsonSerializer create() {
+    public static Serializer create() {
         return new LiveboxGsonSerializer(new Gson());
     }
 
-    public static LiveboxGsonSerializer create(Gson gson) {
+    public static Serializer create(Gson gson) {
         return new LiveboxGsonSerializer(gson);
     }
 

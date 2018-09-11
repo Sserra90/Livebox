@@ -1,8 +1,7 @@
-package com.creations.livebox;
+package com.creations.convert_jackson;
 
-import com.creations.livebox.serializers.LiveboxJacksonSerializer;
-import com.creations.livebox.serializers.Serializer;
-import com.creations.livebox.util.Bag;
+import com.creations.livebox_common.serializers.Serializer;
+import com.creations.livebox_common.util.Bag;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;

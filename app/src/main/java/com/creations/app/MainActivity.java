@@ -13,6 +13,7 @@ import com.creations.app.api.Api;
 import com.creations.app.api.GithubService;
 import com.creations.app.api.UsersRes;
 import com.creations.app.entities.Users;
+import com.creations.convert_jackson.util.Util.TypeRef;
 import com.creations.livebox.Livebox;
 import com.creations.livebox.LiveboxBuilder;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
@@ -22,13 +23,14 @@ import com.creations.livebox.util.Objects;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.creations.serializer_gson.LiveboxGsonSerializer;
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.concurrent.TimeUnit;
+
+import static com.creations.convert_jackson.util.Util.fromRef;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
         final GithubService service = Api.getInstance().getGithubService();
 
-        Livebox.init(this);
+        Livebox.init(this, LiveboxGsonSerializer.create());
 
         Validator<UsersRes> persistentDiskValidator = (key, item) -> Objects.nonNull(item) && !item.getItems().isEmpty();
         Validator<UsersRes> diskValidator = (key, item) -> Objects.nonNull(item) && !item.getItems().isEmpty();
@@ -58,17 +60,17 @@ public class MainActivity extends AppCompatActivity {
         Validator<UsersRes> ageValidator = AgeValidator.create(TimeUnit.MINUTES.toMillis(2));
         try {
 
-            final Fetcher<UsersRes> fileFetcher =
-                    FileFetcher.create(this, "user_res.json", UsersRes.class);
-
             //TypeToken<List<UsersRes>> token = new TypeToken<List<UsersRes>>() {};
-            TypeReference typeReference = new TypeReference<UsersRes>() {
-            };
-            Type type = TypeFactory.defaultInstance().constructType(typeReference);
+            Type type = fromRef(new TypeRef<UsersRes>() {
+            });
+            final Fetcher<UsersRes> fileFetcher = FileFetcher.create(
+                    this, "user_res.json", UsersRes.class, LiveboxGsonSerializer.create()
+            );
+
             usersBox = new LiveboxBuilder<UsersRes, Users>()
                     .withKey("get_users")
                     //.fetch(fileFetcher, UsersRes.class)
-                    .fetch(fileFetcher, type)
+                    .fetch(fileFetcher, UsersRes.class)
                     .addSource(Sources.MEMORY_LRU, ageValidator)
                     .addSource(Sources.DISK_PERSISTENT, persistentDiskValidator)
                     //.addSource(Sources.DISK_LRU, diskValidator)

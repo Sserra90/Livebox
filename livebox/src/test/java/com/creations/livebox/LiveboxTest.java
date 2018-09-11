@@ -7,13 +7,13 @@ import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
 import com.creations.livebox.datasources.fetcher.Fetcher;
 import com.creations.livebox.datasources.memory.InMemoryLruDataSource;
-import com.creations.livebox.util.Bag;
 import com.creations.livebox.util.FakeSource;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.OnOffValidator;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
+import com.creations.livebox_common.util.Bag;
 import com.google.gson.reflect.TypeToken;
 
 import org.junit.After;

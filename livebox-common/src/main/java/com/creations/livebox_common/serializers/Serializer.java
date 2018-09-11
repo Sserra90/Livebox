@@ -1,4 +1,4 @@
-package com.creations.livebox.serializers;
+package com.creations.livebox_common.serializers;
 
 import java.lang.reflect.Type;
 
