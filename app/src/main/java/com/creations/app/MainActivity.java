@@ -13,7 +13,6 @@ import com.creations.app.api.Api;
 import com.creations.app.api.GithubService;
 import com.creations.app.api.UsersRes;
 import com.creations.app.entities.Users;
-import com.creations.convert_jackson.util.Util.TypeRef;
 import com.creations.livebox.Livebox;
 import com.creations.livebox.LiveboxBuilder;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
@@ -24,13 +23,13 @@ import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
 import com.creations.serializer_gson.LiveboxGsonSerializer;
+import com.creations.serializer_gson.Utils;
+import com.google.gson.reflect.TypeToken;
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.concurrent.TimeUnit;
-
-import static com.creations.convert_jackson.util.Util.fromRef;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -61,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         try {
 
             //TypeToken<List<UsersRes>> token = new TypeToken<List<UsersRes>>() {};
-            Type type = fromRef(new TypeRef<UsersRes>() {
+            Type type = Utils.fromType(new TypeToken<UsersRes>() {
             });
             final Fetcher<UsersRes> fileFetcher = FileFetcher.create(
                     this, "user_res.json", UsersRes.class, LiveboxGsonSerializer.create()

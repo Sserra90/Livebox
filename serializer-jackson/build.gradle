@@ -1,4 +1,7 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+
+group = 'org.bitbucket.Sserra.livebox'
 
 android {
     compileSdkVersion 27
@@ -27,7 +30,10 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(":livebox-common")
+
+    implementation 'org.bitbucket.Sserra.livebox:livebox-common:dev-SNAPSHOT'
+
+    //implementation project(":livebox-common")
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.7.9.4'
 
     testImplementation 'junit:junit:4.12'

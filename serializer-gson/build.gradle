@@ -1,4 +1,7 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+
+group = 'org.bitbucket.Sserra.livebox'
 
 android {
     compileSdkVersion 27
@@ -31,7 +34,10 @@ ext {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(":livebox-common")
+
+    implementation 'org.bitbucket.Sserra.livebox:livebox-common:dev-SNAPSHOT'
+
+    //implementation project(":livebox-common")
     implementation "com.google.code.gson:gson:$gson"
 
     testImplementation 'junit:junit:4.12'
