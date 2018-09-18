@@ -45,8 +45,8 @@ ext {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    //api project(":livebox-common")
-    api 'org.bitbucket.Sserra.livebox:livebox-common:dev-SNAPSHOT'
+    api project(":livebox-common")
+    //api 'org.bitbucket.Sserra.livebox:livebox-common:dev-SNAPSHOT'
 
     implementation "android.arch.lifecycle:extensions:$lifecycle_version"
     implementation "android.arch.lifecycle:reactivestreams:$lifecycle_version"

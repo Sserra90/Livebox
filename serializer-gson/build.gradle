@@ -35,9 +35,7 @@ ext {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'org.bitbucket.Sserra.livebox:livebox-common:dev-SNAPSHOT'
-
-    //implementation project(":livebox-common")
+    implementation project(":livebox-common")
     implementation "com.google.code.gson:gson:$gson"
 
     testImplementation 'junit:junit:4.12'

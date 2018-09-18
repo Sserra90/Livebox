@@ -15,6 +15,9 @@ import com.creations.app.api.UsersRes;
 import com.creations.app.entities.Users;
 import com.creations.livebox.Livebox;
 import com.creations.livebox.LiveboxBuilder;
+import com.creations.livebox.adapters.LiveDataAdapter;
+import com.creations.livebox.config.Config;
+import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
 import com.creations.livebox.datasources.fetcher.Fetcher;
 import com.creations.livebox.datasources.fetcher.FileFetcher;
@@ -27,6 +30,7 @@ import com.creations.serializer_gson.Utils;
 import com.google.gson.reflect.TypeToken;
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +54,12 @@ public class MainActivity extends AppCompatActivity {
         final GithubService service = Api.getInstance().getGithubService();
 
         Livebox.init(this, LiveboxGsonSerializer.create());
+        Livebox.init(new Config()
+                .lruCacheConfig(new DiskLruDataSource.Config(
+                        new File("somePath"), 10
+                ))
+                .addSerializer(LiveboxGsonSerializer.create())
+        );
 
         Validator<UsersRes> persistentDiskValidator = (key, item) -> Objects.nonNull(item) && !item.getItems().isEmpty();
         Validator<UsersRes> diskValidator = (key, item) -> Objects.nonNull(item) && !item.getItems().isEmpty();
@@ -69,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
             usersBox = new LiveboxBuilder<UsersRes, Users>()
                     .withKey("get_users")
                     //.fetch(fileFetcher, UsersRes.class)
-                    .fetch(fileFetcher, UsersRes.class)
+                    .fetch(service::getUserList, UsersRes.class)
                     .addSource(Sources.MEMORY_LRU, ageValidator)
                     .addSource(Sources.DISK_PERSISTENT, persistentDiskValidator)
                     //.addSource(Sources.DISK_LRU, diskValidator)
@@ -85,6 +95,9 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("CheckResult")
     private void getUsers() {
+
+        usersBox.as(new LiveDataAdapter<>()).observe(this, users -> Log.d(TAG, "UsersRes: " + users));
+        usersBox.asLiveData().observe(this, users -> Log.d(TAG, "UsersRes: " + users));
 
         //liveData.observe(this, users -> Log.d(TAG, "UsersRes: " + users));
         usersBox.scoped(AndroidLifecycleScopeProvider.from(this))
