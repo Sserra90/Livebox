@@ -54,12 +54,12 @@ public class MainActivity extends AppCompatActivity {
         final GithubService service = Api.getInstance().getGithubService();
 
         Livebox.init(this, LiveboxGsonSerializer.create());
-        Livebox.init(new Config()
+        /*Livebox.init(new Config()
                 .lruCacheConfig(new DiskLruDataSource.Config(
                         new File("somePath"), 10
                 ))
                 .addSerializer(LiveboxGsonSerializer.create())
-        );
+        );*/
 
         Validator<UsersRes> persistentDiskValidator = (key, item) -> Objects.nonNull(item) && !item.getItems().isEmpty();
         Validator<UsersRes> diskValidator = (key, item) -> Objects.nonNull(item) && !item.getItems().isEmpty();
@@ -96,8 +96,8 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("CheckResult")
     private void getUsers() {
 
-        usersBox.as(new LiveDataAdapter<>()).observe(this, users -> Log.d(TAG, "UsersRes: " + users));
-        usersBox.asLiveData().observe(this, users -> Log.d(TAG, "UsersRes: " + users));
+        //usersBox.as(new LiveDataAdapter<>()).observe(this, users -> Log.d(TAG, "UsersRes: " + users));
+        //usersBox.asLiveData().observe(this, users -> Log.d(TAG, "UsersRes: " + users));
 
         //liveData.observe(this, users -> Log.d(TAG, "UsersRes: " + users));
         usersBox.scoped(AndroidLifecycleScopeProvider.from(this))

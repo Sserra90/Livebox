@@ -45,12 +45,12 @@ ext {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    //implementation project(":livebox")
-    //implementation project(":serializer-jackson")
-    //implementation project(":serializer-gson")
+    implementation project(":livebox")
+    implementation project(":serializer-jackson")
+    implementation project(":serializer-gson")
 
-    implementation 'org.bitbucket.Sserra.livebox:livebox:dev-SNAPSHOT'
-    implementation 'org.bitbucket.Sserra.livebox:serializer-gson:dev-SNAPSHOT'
+    //implementation 'org.bitbucket.Sserra.livebox:livebox:dev-SNAPSHOT'
+    //implementation 'org.bitbucket.Sserra.livebox:serializer-gson:dev-SNAPSHOT'
 
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
