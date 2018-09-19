@@ -4,6 +4,7 @@ import android.os.Looper;
 
 import com.creations.livebox.config.Config;
 import com.creations.livebox.datasources.disk.DiskLruDataSource;
+import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox_common.util.Bag;
 import com.creations.serializer_gson.LiveboxGsonSerializer;
@@ -39,6 +40,7 @@ public class DiskLruDataSourceTest {
         // We need to mock the call otherwise we cannot run unit tests.
         PowerMockito.mockStatic(Looper.class);
         PowerMockito.when(Looper.getMainLooper()).thenReturn(Mockito.mock(Looper.class));
+        Logger.disable();
     }
 
     @Test

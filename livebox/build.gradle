@@ -36,7 +36,7 @@ ext {
     igDiskCache = "1.0.0@aar"
     powerMock = "1.7.4"
     lifecycle_version = "1.1.1"
-    mockito = "2.15.0"
+    mockito = "2.8.9"
     autoDispose = "1.0.0-RC2"
     jackson = "2.7.9.4"
     gson = "2.8.2"
@@ -62,7 +62,7 @@ dependencies {
     testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: "$powerMock"
     testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: "$powerMock"
 
-    testImplementation "org.mockito:mockito-core:2.15.0"
+    testImplementation "org.mockito:mockito-core:$mockito"
     testImplementation "android.arch.core:core-testing:${lifecycle_version}"
     testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "$jackson"
     testImplementation "com.google.code.gson:gson:$gson"
