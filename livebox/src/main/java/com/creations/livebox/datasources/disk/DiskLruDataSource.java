@@ -3,6 +3,7 @@ package com.creations.livebox.datasources.disk;
 import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
+import com.creations.livebox.util.io.Utils;
 import com.creations.livebox_common.serializers.Serializer;
 import com.instagram.igdiskcache.EditorOutputStream;
 import com.instagram.igdiskcache.IgDiskCache;
@@ -83,6 +84,9 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
             copy(input.inputStream(), new BufferedOutputStream(output));
         } catch (IOException e) {
             e.printStackTrace();
+        }finally {
+            Utils.closeQuietly(input);
+            Utils.closeQuietly(output);
         }
         Logger.d(TAG, "---> Success data saved in diskLruDataSource.");
     }
