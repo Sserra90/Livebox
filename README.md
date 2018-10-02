@@ -1,6 +1,6 @@
 # Livebox IN-DEVELOPMENT
 
-Please check https://olx-group-tech-lisbon.gitbook.io/livebox/ for full documentation
+Please check https://sserra.gitbook.io/livebox/ for full documentation
 
 # Features
 
