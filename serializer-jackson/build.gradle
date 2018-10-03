@@ -31,9 +31,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'org.bitbucket.Sserra.livebox:livebox-common:dev-SNAPSHOT'
-
-    //implementation project(":livebox-common")
+    implementation project(":livebox-common")
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.7.9.4'
 
     testImplementation 'junit:junit:4.12'

@@ -183,7 +183,7 @@ public class Livebox<I, O> {
      *
      * @return an Observable that will emit an {@link Optional} that may or may not contain data.
      */
-    private Observable<Optional<?>> readFromLocalSources() {
+    private Optional<?> readFromLocalSources() {
         Logger.d(TAG, "readFromLocalSources() called");
 
         if (mLocalSources.isEmpty()) {
@@ -207,12 +207,11 @@ public class Livebox<I, O> {
             }
 
             Logger.d(TAG, "---> Data from source " + source + " is valid");
-            return Observable.fromCallable(() -> data);
+            return data;
         }
 
         Logger.d(TAG, "---> No valid data found");
-        return Observable.fromCallable(Optional::empty);
-
+        return Optional.empty();
     }
 
     // Maps data from local data source type -> output type
@@ -301,11 +300,12 @@ public class Livebox<I, O> {
         }
 
         // Get data from local source.
-        Observable<O> retObservable = readFromLocalSources()
+        Observable<O> retObservable = Observable
+                .fromCallable(this::readFromLocalSources)
                 .flatMap((Function<Optional<?>, Observable<O>>) localResult -> {
 
-                    // Local data is invalid, return a Observable that fetches remote data and
-                    // saves to local data source.
+                    // Local data is invalid, return an Observable that fetches remote data and
+                    // saves to local data sources.
                     if (localResult.isAbsent()) {
                         Logger.d(TAG, "Local data is invalid, hit remote data source and save");
                         return fetch(true);

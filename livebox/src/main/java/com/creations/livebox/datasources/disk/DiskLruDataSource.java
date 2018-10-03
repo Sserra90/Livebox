@@ -3,6 +3,7 @@ package com.creations.livebox.datasources.disk;
 import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.util.Logger;
 import com.creations.livebox.util.Optional;
+import com.creations.livebox.util.io.Utils;
 import com.creations.livebox_common.serializers.Serializer;
 import com.instagram.igdiskcache.EditorOutputStream;
 import com.instagram.igdiskcache.IgDiskCache;
@@ -12,6 +13,7 @@ import com.instagram.igdiskcache.SnapshotInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.concurrent.Executors;
 
@@ -79,10 +81,14 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
     }
 
     private void writeToCacheOutputStream(BufferedSource input, EditorOutputStream output) {
+        OutputStream os = new BufferedOutputStream(output);
         try {
-            copy(input.inputStream(), new BufferedOutputStream(output));
+            copy(input.inputStream(), os);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            Utils.closeQuietly(input);
+            Utils.closeQuietly(os);
         }
         Logger.d(TAG, "---> Success data saved in diskLruDataSource.");
     }
