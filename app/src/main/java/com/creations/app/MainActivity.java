@@ -99,8 +99,8 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("CheckResult")
     private void getUsers() {
 
-        box.scoped(AndroidLifecycleScopeProvider.from(this))
-                .subscribe(data -> Log.d(TAG, "Data: " + data), Throwable::printStackTrace);
+        //usersBox.as(new LiveDataAdapter<>()).observe(this, users -> Log.d(TAG, "UsersRes: " + users));
+        //usersBox.asLiveData().observe(this, users -> Log.d(TAG, "UsersRes: " + users));
 
         //liveData.observe(this, users -> Log.d(TAG, "UsersRes: " + users));
         /*usersBox.scoped(AndroidLifecycleScopeProvider.from(this))

@@ -12,6 +12,10 @@ import java.lang.reflect.Type;
  */
 public class Util {
 
+    public static Type fromClass(Class<?> aClass) {
+        return TypeFactory.defaultInstance().constructType(aClass);
+    }
+
     public static <T> Type fromRef(TypeReference<T> reference) {
         return TypeFactory.defaultInstance().constructType(reference);
     }
