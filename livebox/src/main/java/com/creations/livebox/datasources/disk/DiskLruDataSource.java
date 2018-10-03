@@ -17,6 +17,7 @@ import java.util.concurrent.Executors;
 
 import okio.BufferedSource;
 
+import static com.creations.livebox.Livebox.TAG;
 import static com.creations.livebox_common.util.OkioUtils.bufferedSource;
 import static com.creations.livebox_common.util.OkioUtils.copy;
 
@@ -27,7 +28,6 @@ import static com.creations.livebox_common.util.OkioUtils.copy;
  */
 public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
 
-    private static final String TAG = "DiskLruDataSource";
     private static DiskLruDataSource.Config mDiskCacheConfig;
     private LiveboxDiskCache mDiskCache;
     private Serializer mSerializer;
@@ -50,18 +50,19 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
     @Override
     public Optional<O> read(String key) {
         OptionalStream<SnapshotInputStream> iis = mDiskCache.get(key);
-        Logger.d(TAG, "Read from disk cache is present: " + iis.isPresent() + " with  key: " + key);
+        Logger.d(TAG, "Read from disk cache is present: %s with key: %s", iis.isPresent(), key);
         if (iis.isPresent()) {
             O data = mSerializer.deserialize(bufferedSource(iis.get()), mType);
+            Logger.d(TAG, "Data read from disk %s", data);
             return Optional.ofNullable(data);
         }
         return Optional.empty();
     }
 
     @Override
-    public void save(String key, I input) throws IllegalStateException {
+    public void save(String key, I input) {
         OptionalStream<EditorOutputStream> oos = mDiskCache.edit(key);
-        Logger.d(TAG, "Save to disk cache is present: " + oos.isPresent() + " with  key: " + key);
+        Logger.d(TAG, "Save to disk cache is present: %s with key: %s", oos.isPresent(), key);
         if (oos.isPresent()) {
             try {
                 writeToCacheOutputStream(mSerializer.serialize(input, mType), oos.get());
@@ -74,7 +75,7 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
 
     @Override
     public void clear(String key) {
-        Logger.d(TAG, "Clear key: " + key);
+        Logger.d(TAG, "Clear key: %s", key);
         mDiskCache.clear(key);
     }
 
@@ -84,7 +85,8 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Logger.d(TAG, "---> Success data saved in diskLruDataSource.");
+
+        Logger.d(TAG, "Data saved to diskLruDataSource");
     }
 
     @Override

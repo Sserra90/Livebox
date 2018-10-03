@@ -1,7 +1,5 @@
 package com.creations.livebox.converters;
 
-import com.creations.livebox.util.Optional;
-
 import io.reactivex.annotations.NonNull;
 
 /**
@@ -11,5 +9,5 @@ import io.reactivex.annotations.NonNull;
  */
 public interface Converter<R, T> {
     @NonNull
-    Optional<T> convert(R o) throws Exception;
+    T convert(R o) throws Exception;
 }

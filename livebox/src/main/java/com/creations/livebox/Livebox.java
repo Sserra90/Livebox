@@ -25,6 +25,7 @@ import com.uber.autodispose.ObservableSubscribeProxy;
 import com.uber.autodispose.lifecycle.LifecycleScopeProvider;
 
 import java.io.File;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,6 +40,7 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
+import static com.creations.livebox.util.Objects.isNull;
 import static com.creations.livebox.util.Objects.nonNull;
 
 /**
@@ -48,7 +50,7 @@ import static com.creations.livebox.util.Objects.nonNull;
  */
 public class Livebox<I, O> {
 
-    private static final String TAG = "Livebox";
+    public static final String TAG = "Livebox";
 
     private static final String LRU_DISK_CACHE_DIR = "livebox_disk_lru_cache";
     private static final String PERSISTENT_DISK_CACHE_DIR = "livebox_disk_persistent_cache";
@@ -120,15 +122,18 @@ public class Livebox<I, O> {
     // Remote data source
     private Fetcher<I> mFetcher;
 
+    // Type that represents fetched data
+    private Type mType;
+
     // Local data sources
     private List<LocalDataSource<I, ?>> mLocalSources;
 
     // Stores validator for each store instance
     private Map<LocalDataSource<I, ?>, Validator> mValidators;
 
-    // Keeps a mapping between a class types and a Converters.
+    // Keeps a mapping between a types and converter.
     // Converter are used to convert the data read from data sources to the desired output.
-    private Map<Class<?>, Converter<?, O>> mConvertersMap;
+    private Map<Type, Converter<?, O>> mConvertersMap;
 
     // Converters factory, given a class type returns the converter instance to use.
     private Optional<ConvertersFactory<O>> mConverterFactory;
@@ -150,10 +155,10 @@ public class Livebox<I, O> {
         }
     };
 
-    Livebox(BoxKey key, boolean refresh, boolean ignoreDiskCache, boolean retryOnFailure, RetryStrategy retryStrategy,
+    Livebox(BoxKey key, Type type, boolean refresh, boolean ignoreDiskCache, boolean retryOnFailure, RetryStrategy retryStrategy,
             boolean isUsingAgeValidator, Fetcher<I> fetcher, List<LocalDataSource<I, ?>> localSources,
             Map<LocalDataSource<I, ?>, Validator> validators,
-            Map<Class<?>, Converter<?, O>> convertersMap,
+            Map<Type, Converter<?, O>> convertersMap,
             Optional<ConvertersFactory<O>> converterFactory) {
 
         if (!mInit) {
@@ -161,6 +166,7 @@ public class Livebox<I, O> {
         }
 
         mKey = key;
+        mType = type;
         mRefresh = refresh;
         mIgnoreDiskCache = ignoreDiskCache;
         mRetryOnFailure = retryOnFailure;
@@ -186,12 +192,8 @@ public class Livebox<I, O> {
     private Observable<Optional<?>> readFromLocalSources() {
         Logger.d(TAG, "readFromLocalSources() called");
 
-        if (mLocalSources.isEmpty()) {
-            throw new IllegalStateException("No local sources found");
-        }
-
         for (LocalDataSource<I, ?> source : mLocalSources) {
-            Logger.d(TAG, "---> Hit source " + source);
+            Logger.d(TAG, "Hit source %s", source);
 
             final Optional<?> data = source.read(mKey.key());
             if (data.isAbsent()) {
@@ -201,18 +203,17 @@ public class Livebox<I, O> {
             @SuppressWarnings("unchecked")
             boolean isValid = mValidators.get(source).validate(mKey.key(), data.get());
             if (!isValid) {
-                Logger.d(TAG, "---> Data from source " + source + " is not valid. Clear it");
+                Logger.d(TAG, "Data from source %s is not valid. Clear it", source);
                 source.clear(mKey.key());
                 continue;
             }
 
-            Logger.d(TAG, "---> Data from source " + source + " is valid");
+            Logger.d(TAG, "Data from source %s is valid", source);
             return Observable.fromCallable(() -> data);
         }
 
-        Logger.d(TAG, "---> No valid data found");
+        Logger.d(TAG, "No valid data found");
         return Observable.fromCallable(Optional::empty);
-
     }
 
     // Maps data from local data source type -> output type
@@ -246,13 +247,13 @@ public class Livebox<I, O> {
      */
     private void passFetchedDataToLocalSources(I data) {
         if (mIsUsingAgeValidator) {
-            Logger.d(TAG, "---> Save in journal for key: " + mKey);
+            Logger.d(TAG, "Save in journal for key: " + mKey);
             journal.save(mKey.key(), System.currentTimeMillis());
         }
 
         Logger.d(TAG, "Pass fresh data to local sources");
         for (LocalDataSource<I, ?> localSource : mLocalSources) {
-            Logger.d(TAG, "---> Saving fresh data in: " + localSource);
+            Logger.d(TAG, "Saving fresh data in: " + localSource);
             localSource.save(mKey.key(), data);
         }
     }
@@ -262,19 +263,19 @@ public class Livebox<I, O> {
 
         Converter<T, O> converter;
         if (mConverterFactory.isPresent()) {
-            Logger.d(TAG, "---> Using converter factory");
+            Logger.d(TAG, "Using converter factory");
             converter = mConverterFactory.get().get((Class<T>) data.getClass());
         } else {
-            converter = (Converter<T, O>) mConvertersMap.get(data.getClass());
+            converter = (Converter<T, O>) mConvertersMap.get(mType);
         }
 
         if (nonNull(converter)) {
-            Optional<O> convertedData = converter.convert(data);
-            Logger.d(TAG, "---> Converter found for type: " + data.getClass());
-            if (convertedData.isAbsent()) {
+            O convertedData = converter.convert(data);
+            Logger.d(TAG, "Converter found for type: " + mType);
+            if (isNull(convertedData)) {
                 throw new IllegalStateException("Converter: " + converter + "returned null for: " + data);
             }
-            return convertedData.get();
+            return convertedData;
         }
 
         // If no converter was found, we try casting because T type parameter
@@ -285,11 +286,12 @@ public class Livebox<I, O> {
 
     @SuppressWarnings("WeakerAccess")
     public Observable<O> asObservable() {
+        Logger.d(TAG, "Start request for key: %s", mKey);
 
         // Check if we have a request ongoing.
         // If we do return the Observable so the caller can subscribe to it.
         if (inFlightRequests.get(mKey) != null) {
-            Logger.d(TAG, "---> We have a in-flight request for key: " + mKey);
+            Logger.d(TAG, "We have a in-flight request for key: %s", mKey);
             //noinspection unchecked
             return (Observable<O>) inFlightRequests.get(mKey);
         }
@@ -301,7 +303,8 @@ public class Livebox<I, O> {
         }
 
         // Get data from local source.
-        Observable<O> retObservable = readFromLocalSources()
+        Observable<O> retObservable = Observable
+                .defer(this::readFromLocalSources)
                 .flatMap((Function<Optional<?>, Observable<O>>) localResult -> {
 
                     // Local data is invalid, return a Observable that fetches remote data and
@@ -350,7 +353,7 @@ public class Livebox<I, O> {
      * @return {@link LiveData} instance
      */
     public LiveData<O> asLiveData() {
-        return new LiveDataAdapter<O>().adapt(asObservable());
+        return new LiveDataAdapter<O>().adapt(asAndroidObservable());
     }
 
     /**

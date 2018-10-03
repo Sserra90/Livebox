@@ -15,6 +15,7 @@ import java.lang.reflect.Type;
 import okio.BufferedSource;
 import okio.Okio;
 
+import static com.creations.livebox.Livebox.TAG;
 import static com.creations.livebox_common.util.OkioUtils.copy;
 
 /**
@@ -25,7 +26,6 @@ import static com.creations.livebox_common.util.OkioUtils.copy;
 public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
 
     private static final String SUFFIX = "_livebox.json";
-    private static final String TAG = "DiskPersistentDataSour";
     private static Config mConfig;
     private Serializer mSerializer;
     private Type mType;
@@ -72,7 +72,7 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
             return Optional.empty();
         }
 
-        Logger.d(TAG, "---> File available, read it");
+        Logger.d(TAG, "File available, read it");
 
         O data = null;
         try {
@@ -104,7 +104,7 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
                 final OutputStream os = Okio.buffer(Okio.sink(outputFile)).outputStream()
         ) {
             copy(is, os);
-            Logger.d(TAG, "---> Success data saved in diskPersistentDataSource.");
+            Logger.d(TAG, "Success data saved in diskPersistentDataSource.");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

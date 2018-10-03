@@ -172,6 +172,23 @@ public class Logger {
         System.out.println(msg);
     }
 
+
+    /**
+     * Mirrors the android.util.Log.d(String category, String msg) with internal log level check.
+     *
+     * @param tag The log category.
+     * @param msg The message for logging.
+     */
+    public static void d(String tag, String msg, Object... args) {
+        if (isInternalLoggable(android.util.Log.DEBUG)) {
+            android.util.Log.d(mainTagPrefix + tag, String.format(msg, args));
+            return;
+        }
+
+        // Log with system out
+        System.out.println(msg);
+    }
+
     /**
      * Same behavior of android.util.Log.d(String category, String msg) with internal log level
      * check. But instead of requiring a TAG, uses the object passed as parameter for

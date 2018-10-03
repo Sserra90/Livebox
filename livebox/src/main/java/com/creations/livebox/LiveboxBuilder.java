@@ -67,6 +67,9 @@ public class LiveboxBuilder<I, O> {
     // Indicates if an age validator was found
     private boolean mIsUsingAgeValidator = false;
 
+    // Type that represents fetched data
+    private Type mType;
+
     // Fetcher used to retrieve data from remote source
     private Fetcher<I> mFetcher;
 
@@ -78,7 +81,7 @@ public class LiveboxBuilder<I, O> {
 
     // Keeps a mapping between a class types and a Converters.
     // Converter are used to convert the data read from data sources to the desired output.
-    private Map<Class<?>, Converter<?, O>> mConvertersMap = new HashMap<>();
+    private Map<Type, Converter<?, O>> mConvertersMap = new HashMap<>();
 
     // Converters factory, given a class type returns the converter instance to use.
     private Optional<ConvertersFactory<O>> mConverterFactory = Optional.empty();
@@ -114,6 +117,8 @@ public class LiveboxBuilder<I, O> {
 
     public LiveboxBuilder<I, O> fetch(@NonNull Fetcher<I> source, Type type) {
         requireNonNull(source, "Fetcher cannot be null");
+        requireNonNull(type, "Type cannot be null");
+        mType = type;
         mFetcher = source;
         mDataSourceFactoryList.add(new LiveboxDataSourceFactory<>(Livebox.getConfig().getSerializer(), type));
         return this;
@@ -150,10 +155,16 @@ public class LiveboxBuilder<I, O> {
         return this;
     }
 
+    public <T> LiveboxBuilder<I, O> addConverter(@NonNull Type type, @NonNull Converter<T, O> converter) {
+        requireNonNull(converter, "Converter cannot be null");
+        requireNonNull(type, "Type cannot be null");
+        mConvertersMap.put(type, converter);
+        return this;
+    }
+
     public <T> LiveboxBuilder<I, O> addConverter(@NonNull Class<T> aClass, @NonNull Converter<T, O> converter) {
         requireNonNull(converter, "Converter cannot be null");
         requireNonNull(aClass, "Class cannot be null");
-
         mConvertersMap.put(aClass, converter);
         return this;
     }
@@ -173,7 +184,7 @@ public class LiveboxBuilder<I, O> {
 
     public Livebox<I, O> build() {
         return new Livebox<>(
-                mKey, mRefresh, mIgnoreCache, mRetryOnFailure, mRetryStrategy, mIsUsingAgeValidator,
+                mKey, mType, mRefresh, mIgnoreCache, mRetryOnFailure, mRetryStrategy, mIsUsingAgeValidator,
                 mFetcher, mLocalSources, mValidators, mConvertersMap,
                 mConverterFactory
         );
