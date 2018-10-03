@@ -145,7 +145,7 @@ public class Livebox<I, O> {
             Logger.d(TAG, "Compose with share");
             Observable<O> observable = upstream
                     .doOnComplete(() -> {
-                        Logger.d(TAG, "Remove from inFlightRequests with key: " + mKey);
+                        Logger.d(TAG, "Remove from inFlightRequests with key %s", mKey);
                         inFlightRequests.remove(mKey);
                     })
                     .share();
@@ -235,9 +235,9 @@ public class Livebox<I, O> {
             obs = obs.doOnNext(this::passFetchedDataToLocalSources);
         }
 
-        return obs.map(this::convert)
-                .compose(Transformers.withRetry(mRetryOnFailure, mRetryStrategy))
-                .compose(withShare);
+        return obs
+                .map(this::convert)
+                .compose(Transformers.withRetry(mRetryOnFailure, mRetryStrategy));
     }
 
     /**
@@ -299,7 +299,7 @@ public class Livebox<I, O> {
         // If ignore disk cache is true always hit remote data source
         if (mIgnoreDiskCache) {
             Logger.d(TAG, "Ignore disk cache, hit remote data source");
-            return fetch(false);
+            return fetch(false).compose(withShare);
         }
 
         // Get data from local source.

@@ -82,11 +82,11 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
     private void writeToCacheOutputStream(BufferedSource input, EditorOutputStream output) {
         try {
             copy(input.inputStream(), new BufferedOutputStream(output));
+            Logger.d(TAG, "Data saved to diskLruDataSource");
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        Logger.d(TAG, "Data saved to diskLruDataSource");
     }
 
     @Override

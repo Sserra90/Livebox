@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         box = new LiveboxBuilder<List<String>, List<Integer>>()
                 .withKey("some_key")
                 .fetch(() -> Observable.just(new ArrayList<>()), type)
-                .addSource(Sources.DISK_LRU, (a, b) -> false)
+                .addSource(Sources.DISK_LRU, (a, b) -> true)
                 .addConverter(type, (Converter<List<String>, List<Integer>>) t -> new ArrayList<>())
                 .build();
 
