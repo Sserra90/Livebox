@@ -103,8 +103,8 @@ public class MainActivity extends AppCompatActivity {
         //usersBox.asLiveData().observe(this, users -> Log.d(TAG, "UsersRes: " + users));
 
         //liveData.observe(this, users -> Log.d(TAG, "UsersRes: " + users));
-        /*usersBox.scoped(AndroidLifecycleScopeProvider.from(this))
-                .subscribe(users -> Log.d(TAG, "UsersRes: " + users), Throwable::printStackTrace);*/
+        box.scoped(AndroidLifecycleScopeProvider.from(this))
+                .subscribe(data -> Log.d(TAG, "Data: " + data), Throwable::printStackTrace);
 
     }
 

@@ -190,7 +190,7 @@ public class Livebox<I, O> {
      * @return an Observable that will emit an {@link Optional} that may or may not contain data.
      */
     private Optional<?> readFromLocalSources() {
-        Logger.d(TAG, "readFromLocalSources() called");
+        Logger.d(TAG, "Try to read from local data sources");
 
         for (LocalDataSource<I, ?> source : mLocalSources) {
             Logger.d(TAG, "Hit source %s", source);
@@ -363,7 +363,7 @@ public class Livebox<I, O> {
      * @return ObservableSubscribeProxy
      */
     public ObservableSubscribeProxy<O> scoped(LifecycleScopeProvider scopeProvider) {
-        return AutoDisposeAdapter.<O>android(scopeProvider).adapt(asObservable());
+        return AutoDisposeAdapter.<O>android(scopeProvider).adapt(asAndroidObservable());
     }
 
     // Uses passed adapter to adapt the result observable.
