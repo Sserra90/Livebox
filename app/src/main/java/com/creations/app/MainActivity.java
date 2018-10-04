@@ -13,6 +13,8 @@ import com.creations.app.api.Api;
 import com.creations.app.api.GithubService;
 import com.creations.app.api.UsersRes;
 import com.creations.app.entities.Users;
+import com.creations.convert_jackson.LiveboxJacksonSerializer;
+import com.creations.convert_jackson.util.Util;
 import com.creations.livebox.Livebox;
 import com.creations.livebox.LiveboxBuilder;
 import com.creations.livebox.converters.Converter;
@@ -21,7 +23,6 @@ import com.creations.livebox.util.Objects;
 import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
 import com.creations.serializer_gson.LiveboxGsonSerializer;
-import com.creations.serializer_gson.Utils;
 import com.google.gson.reflect.TypeToken;
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider;
 
@@ -31,6 +32,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
+
+import static com.creations.convert_jackson.util.Util.fromRef;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -51,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
         final GithubService service = Api.getInstance().getGithubService();
 
-        Livebox.init(this, LiveboxGsonSerializer.create());
+        Livebox.init(this, LiveboxJacksonSerializer.create());
         /*Livebox.init(new Config()
                 .lruCacheConfig(new DiskLruDataSource.Config(
                         new File("somePath"), 10
@@ -85,8 +88,11 @@ public class MainActivity extends AppCompatActivity {
                     .retryOnFailure()
                     .build();
 */
-        Type type = Utils.fromType(new TypeToken<List<String>>() {
+        /*Type type = Utils.fromType(new TypeToken<List<String>>() {
+        });*/
+        Type type = fromRef(new Util.TypeRef<List<String>>() {
         });
+
         box = new LiveboxBuilder<List<String>, List<Integer>>()
                 .withKey("some_key")
                 .fetch(() -> Observable.just(new ArrayList<>()), type)

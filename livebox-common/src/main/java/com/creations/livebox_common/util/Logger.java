@@ -1,4 +1,4 @@
-package com.creations.livebox.util;
+package com.creations.livebox_common.util;
 
 /**
  * @author Sérgio Serra on 25/08/2018.

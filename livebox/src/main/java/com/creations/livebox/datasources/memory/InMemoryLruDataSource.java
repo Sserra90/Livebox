@@ -3,7 +3,7 @@ package com.creations.livebox.datasources.memory;
 import android.support.v4.util.LruCache;
 
 import com.creations.livebox.datasources.LocalDataSource;
-import com.creations.livebox.util.Logger;
+import com.creations.livebox_common.util.Logger;
 import com.creations.livebox.util.Optional;
 
 /**

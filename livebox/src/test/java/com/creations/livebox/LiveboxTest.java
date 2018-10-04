@@ -8,7 +8,7 @@ import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Source
 import com.creations.livebox.datasources.fetcher.Fetcher;
 import com.creations.livebox.datasources.memory.InMemoryLruDataSource;
 import com.creations.livebox.util.FakeSource;
-import com.creations.livebox.util.Logger;
+import com.creations.livebox_common.util.Logger;
 import com.creations.livebox.util.OnOffValidator;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.AgeValidator;

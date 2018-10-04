@@ -2,7 +2,7 @@ package com.creations.livebox;
 
 import com.creations.livebox.config.Config;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
-import com.creations.livebox.util.Logger;
+import com.creations.livebox_common.util.Logger;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox_common.serializers.Serializer;
 import com.creations.livebox_common.util.Bag;

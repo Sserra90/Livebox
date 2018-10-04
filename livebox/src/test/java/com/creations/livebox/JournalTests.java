@@ -1,6 +1,6 @@
 package com.creations.livebox;
 
-import com.creations.livebox.util.Logger;
+import com.creations.livebox_common.util.Logger;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.Journal;
 

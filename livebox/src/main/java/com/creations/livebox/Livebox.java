@@ -15,7 +15,7 @@ import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.fetcher.Fetcher;
 import com.creations.livebox.rx.Transformers;
-import com.creations.livebox.util.Logger;
+import com.creations.livebox_common.util.Logger;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.util.io.Utils;
 import com.creations.livebox.validator.Journal;
@@ -80,6 +80,8 @@ public class Livebox<I, O> {
     public static void init(Config config) {
         mInit = true;
         mConfig = config;
+
+        Logger.d(TAG, "Init with config: " + config);
 
         DiskPersistentDataSource.setConfig(getConfig().getPersistentConfig());
         DiskLruDataSource.setConfig(getConfig().getLruConfig());

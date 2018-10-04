@@ -1,7 +1,7 @@
 package com.creations.livebox.datasources.disk;
 
 import com.creations.livebox.datasources.LocalDataSource;
-import com.creations.livebox.util.Logger;
+import com.creations.livebox_common.util.Logger;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.util.io.Utils;
 import com.creations.livebox_common.serializers.Serializer;
@@ -114,6 +114,14 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
 
         long getCacheSize() {
             return mCacheSize;
+        }
+
+        @Override
+        public String toString() {
+            return "Config{" +
+                    "CacheDir=" + mCacheDir +
+                    ", CacheSize=" + mCacheSize +
+                    '}';
         }
     }
 

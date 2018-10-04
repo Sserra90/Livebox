@@ -1,8 +1,11 @@
 package com.creations.livebox.util.io;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
+
+import com.creations.livebox.BuildConfig;
 
 import java.io.Closeable;
 import java.io.File;
@@ -21,13 +24,12 @@ public class Utils {
             return 0;
         }
         try {
-            StatFs stat = new StatFs(dir.getPath());
-            int totalBytes = stat.getBlockCount() * stat.getBlockSize();
-            int freeBytes = stat.getAvailableBlocks() * stat.getBlockSize();
-            int desiredBytes = (int) Math.min((totalBytes * cacheSizePercent), maxSizeInBytes);
+            final StatFs stat = new StatFs(dir.getPath());
+            long totalBytes = stat.getBlockCount() * (long) stat.getBlockSize();
+            long freeBytes = stat.getAvailableBlocks() * (long) stat.getBlockSize();
+            long desiredBytes = (int) Math.min((totalBytes * cacheSizePercent), maxSizeInBytes);
             // If free space is less than desired, use half of the free disk space instead.
-            desiredBytes = (desiredBytes > freeBytes) ? freeBytes / 2 : desiredBytes;
-            return desiredBytes;
+            return (desiredBytes > freeBytes) ? freeBytes / 2 : desiredBytes;
         } catch (IllegalArgumentException e) {
             return 0;
         }

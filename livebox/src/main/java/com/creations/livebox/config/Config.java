@@ -60,4 +60,13 @@ public final class Config {
         return mSerializer;
     }
 
+    @Override
+    public String toString() {
+        return "Config{" +
+                "LruConfig=" + mLruConfig +
+                ", PersistentConfig=" + mPersistentConfig +
+                ", Serializer=" + mSerializer +
+                ", JournalDir=" + mJournalDir +
+                '}';
+    }
 }

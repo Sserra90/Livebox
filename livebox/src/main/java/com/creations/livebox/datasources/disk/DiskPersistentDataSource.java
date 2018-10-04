@@ -1,7 +1,7 @@
 package com.creations.livebox.datasources.disk;
 
 import com.creations.livebox.datasources.LocalDataSource;
-import com.creations.livebox.util.Logger;
+import com.creations.livebox_common.util.Logger;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox_common.serializers.Serializer;
 
@@ -127,6 +127,13 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
 
         File getOutputDir() {
             return mOutputDir;
+        }
+
+        @Override
+        public String toString() {
+            return "Config{" +
+                    "OutputDir=" + mOutputDir +
+                    '}';
         }
     }
 }
