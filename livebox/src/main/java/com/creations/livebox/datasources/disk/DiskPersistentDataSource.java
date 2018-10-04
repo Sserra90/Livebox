@@ -23,7 +23,7 @@ import static com.creations.livebox_common.util.OkioUtils.copy;
  * Criations
  * sergioserra99@gmail.com
  */
-public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
+public class DiskPersistentDataSource<I> implements LocalDataSource<I> {
 
     private static final String SUFFIX = "_livebox.json";
     private static Config mConfig;
@@ -35,7 +35,7 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
         mType = type;
     }
 
-    public static <I, O> DiskPersistentDataSource<I, O> create(Serializer serializer, Type type) {
+    public static <I> DiskPersistentDataSource<I> create(Serializer serializer, Type type) {
         return new DiskPersistentDataSource<>(serializer, type);
     }
 
@@ -44,7 +44,7 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
     }
 
     @Override
-    public Optional<O> read(String key) {
+    public Optional<I> read(String key) {
         Logger.d(TAG, "Read from disk with  key: " + key);
         return readFromDisk(key);
     }
@@ -65,7 +65,7 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
         }
     }
 
-    private Optional<O> readFromDisk(String fileName) {
+    private Optional<I> readFromDisk(String fileName) {
 
         final File outputFile = new File(mConfig.getOutputDir(), fileName + SUFFIX);
         if (!outputFile.canRead()) {
@@ -74,7 +74,7 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
 
         Logger.d(TAG, "File available, read it");
 
-        O data = null;
+        I data = null;
         try {
             final BufferedSource bs = Okio.buffer(Okio.source(outputFile));
             data = mSerializer.deserialize(bs, mType);

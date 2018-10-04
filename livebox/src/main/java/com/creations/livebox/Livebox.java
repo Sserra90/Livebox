@@ -128,10 +128,10 @@ public class Livebox<I, O> {
     private Type mType;
 
     // Local data sources
-    private List<LocalDataSource<I, ?>> mLocalSources;
+    private List<LocalDataSource<I>> mLocalSources;
 
     // Stores validator for each store instance
-    private Map<LocalDataSource<I, ?>, Validator> mValidators;
+    private Map<LocalDataSource<I>, Validator> mValidators;
 
     // Keeps a mapping between a types and converter.
     // Converter are used to convert the data read from data sources to the desired output.
@@ -158,8 +158,8 @@ public class Livebox<I, O> {
     };
 
     Livebox(BoxKey key, Type type, boolean refresh, boolean ignoreDiskCache, boolean retryOnFailure, RetryStrategy retryStrategy,
-            boolean isUsingAgeValidator, Fetcher<I> fetcher, List<LocalDataSource<I, ?>> localSources,
-            Map<LocalDataSource<I, ?>, Validator> validators,
+            boolean isUsingAgeValidator, Fetcher<I> fetcher, List<LocalDataSource<I>> localSources,
+            Map<LocalDataSource<I>, Validator> validators,
             Map<Type, Converter<?, O>> convertersMap,
             Optional<ConvertersFactory<O>> converterFactory) {
 
@@ -194,7 +194,7 @@ public class Livebox<I, O> {
     private Optional<?> readFromLocalSources() {
         Logger.d(TAG, "Try to read from local data sources");
 
-        for (LocalDataSource<I, ?> source : mLocalSources) {
+        for (LocalDataSource<I> source : mLocalSources) {
             Logger.d(TAG, "Hit source %s", source);
 
             final Optional<?> data = source.read(mKey.key());
@@ -254,7 +254,7 @@ public class Livebox<I, O> {
         }
 
         Logger.d(TAG, "Pass fresh data to local sources");
-        for (LocalDataSource<I, ?> localSource : mLocalSources) {
+        for (LocalDataSource<I> localSource : mLocalSources) {
             Logger.d(TAG, "Saving fresh data in: " + localSource);
             localSource.save(mKey.key(), data);
         }

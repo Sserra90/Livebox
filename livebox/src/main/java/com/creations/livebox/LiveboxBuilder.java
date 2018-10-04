@@ -74,10 +74,10 @@ public class LiveboxBuilder<I, O> {
     private Fetcher<I> mFetcher;
 
     // Local data sources
-    private List<LocalDataSource<I, ?>> mLocalSources = new ArrayList<>();
+    private List<LocalDataSource<I>> mLocalSources = new ArrayList<>();
 
     // Stores validators for each data source
-    private Map<LocalDataSource<I, ?>, Validator> mValidators = new HashMap<>();
+    private Map<LocalDataSource<I>, Validator> mValidators = new HashMap<>();
 
     // Keeps a mapping between a class types and a Converters.
     // Converter are used to convert the data read from data sources to the desired output.
@@ -124,7 +124,7 @@ public class LiveboxBuilder<I, O> {
         return this;
     }
 
-    public <T> LiveboxBuilder<I, O> addSource(@NonNull LocalDataSource<I, T> source, @NonNull Validator<T> validator) {
+    public <T> LiveboxBuilder<I, O> addSource(@NonNull LocalDataSource<I> source, @NonNull Validator<T> validator) {
         requireNonNull(source, "Source cannot be null");
         requireNonNull(validator, "Validator cannot be null");
 
@@ -139,7 +139,7 @@ public class LiveboxBuilder<I, O> {
 
     public <T> LiveboxBuilder<I, O> addSource(int dataSourceId, @NonNull Validator<T> validator) {
         for (DataSourceFactory<I> factory : mDataSourceFactoryList) {
-            Optional<LocalDataSource<I, T>> localDataSource = factory.get(dataSourceId);
+            Optional<LocalDataSource<I>> localDataSource = factory.get(dataSourceId);
             if (localDataSource.isPresent()) {
                 addSource(localDataSource.get(), validator);
                 break;

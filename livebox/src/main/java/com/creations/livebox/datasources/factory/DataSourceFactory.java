@@ -9,5 +9,5 @@ import com.creations.livebox.util.Optional;
  * sergioserra99@gmail.com
  */
 public interface DataSourceFactory<I> {
-    <T> Optional<LocalDataSource<I, T>> get(int id);
+    Optional<LocalDataSource<I>> get(int id);
 }

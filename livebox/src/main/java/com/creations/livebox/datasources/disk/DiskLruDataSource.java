@@ -28,7 +28,7 @@ import static com.creations.livebox_common.util.OkioUtils.copy;
  * Criations
  * sergioserra99@gmail.com
  */
-public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
+public class DiskLruDataSource<I> implements LocalDataSource<I> {
 
     private static DiskLruDataSource.Config mDiskCacheConfig;
     private LiveboxDiskCache mDiskCache;
@@ -41,7 +41,7 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
         mType = type;
     }
 
-    public static <I, O> DiskLruDataSource<I, O> create(Serializer serializer, Type type) {
+    public static <I, O> DiskLruDataSource<I> create(Serializer serializer, Type type) {
         return new DiskLruDataSource<>(serializer, type);
     }
 
@@ -50,11 +50,11 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
     }
 
     @Override
-    public Optional<O> read(String key) {
+    public Optional<I> read(String key) {
         OptionalStream<SnapshotInputStream> iis = mDiskCache.get(key);
         Logger.d(TAG, "Read from disk cache is present: %s with key: %s", iis.isPresent(), key);
         if (iis.isPresent()) {
-            O data = mSerializer.deserialize(bufferedSource(iis.get()), mType);
+            I data = mSerializer.deserialize(bufferedSource(iis.get()), mType);
             Logger.d(TAG, "Data read from disk %s", data);
             return Optional.ofNullable(data);
         }
