@@ -17,6 +17,7 @@ import com.creations.convert_jackson.LiveboxJacksonSerializer;
 import com.creations.convert_jackson.util.Util;
 import com.creations.livebox.Livebox;
 import com.creations.livebox.LiveboxBuilder;
+import com.creations.livebox.config.Config;
 import com.creations.livebox.converters.Converter;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
 import com.creations.livebox.util.Objects;
@@ -53,8 +54,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(view -> getUsers());
 
         final GithubService service = Api.getInstance().getGithubService();
-
-        Livebox.init(this, LiveboxJacksonSerializer.create());
+        Livebox.init(new Config(this).addSerializer(LiveboxJacksonSerializer.create()));
         /*Livebox.init(new Config()
                 .lruCacheConfig(new DiskLruDataSource.Config(
                         new File("somePath"), 10

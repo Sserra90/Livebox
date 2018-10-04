@@ -52,36 +52,16 @@ public class Livebox<I, O> {
 
     public static final String TAG = "Livebox";
 
-    private static final String LRU_DISK_CACHE_DIR = "livebox_disk_lru_cache";
-    private static final String PERSISTENT_DISK_CACHE_DIR = "livebox_disk_persistent_cache";
-    private static final String JOURNAL_DIR = "livebox_journal_dir";
-
-    private static final int DEFAULT_DISK_CACHE_SIZE = 1024 * 1024 * 100; // 100MB
-    private static final int DEFAULT_DISK_CACHE_SIZE_PERCENT = 10; // 10% of free disk space
-
-    public static void init(Context context, Serializer serializer) {
-        final File lruCacheDir = Utils.getCacheDirectory(context, LRU_DISK_CACHE_DIR);
-        final long lurCacheSize = Utils.getCacheSizeInBytes(
-                lruCacheDir,
-                DEFAULT_DISK_CACHE_SIZE_PERCENT / 100F,
-                DEFAULT_DISK_CACHE_SIZE
-        );
-        final File persistentCacheDir = Utils.getCacheDirectory(context, PERSISTENT_DISK_CACHE_DIR);
-
-        init(new Config()
-                .journalDir(Utils.getCacheDirectory(context, JOURNAL_DIR))
-                .lruCacheConfig(new DiskLruDataSource.Config(lruCacheDir, lurCacheSize))
-                .persistentCacheConfig(new DiskPersistentDataSource.Config(persistentCacheDir))
-                .addSerializer(serializer)
-        );
-    }
-
     @SuppressWarnings("WeakerAccess")
     public static void init(Config config) {
         mInit = true;
         mConfig = config;
 
         Logger.d(TAG, "Init with config: " + config);
+
+        if (isNull(config.getSerializer())) {
+            throw new IllegalArgumentException("Serializer cannot be null, please call Config#addSerializer()");
+        }
 
         DiskPersistentDataSource.setConfig(getConfig().getPersistentConfig());
         DiskLruDataSource.setConfig(getConfig().getLruConfig());
