@@ -341,7 +341,7 @@ public class Livebox<I, O> {
      * @return ObservableSubscribeProxy
      */
     public ObservableSubscribeProxy<O> scoped(LifecycleScopeProvider scopeProvider) {
-        return AutoDisposeAdapter.<O>android(scopeProvider).adapt(asAndroidObservable());
+        return AutoDisposeAdapter.<O>android(scopeProvider).adapt(asObservable());
     }
 
     // Uses passed adapter to adapt the result observable.

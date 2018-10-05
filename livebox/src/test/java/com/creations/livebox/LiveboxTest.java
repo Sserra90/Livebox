@@ -13,6 +13,8 @@ import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
 import com.creations.livebox_common.util.Bag;
 import com.creations.livebox_common.util.Logger;
+import com.creations.serializer_gson.LiveboxGsonSerializer;
+import com.creations.serializer_gson.Utils;
 import com.google.gson.reflect.TypeToken;
 
 import org.junit.After;
@@ -29,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import io.reactivex.Observable;
 import io.reactivex.observers.TestObserver;
 
+import static com.creations.livebox.validator.AgeValidator.minutes;
 import static java.util.Collections.singletonList;
 import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.times;
@@ -49,12 +52,17 @@ public class LiveboxTest {
 
     private final static String TEST_KEY = "test_key";
     private final static File RES_FILE = new File("src/test/resources");
-    private final static Type TYPE = new TypeToken<Bag<String>>() {
-    }.getType();
+    private final static Type TYPE = Utils.fromType(new TypeToken<Bag<String>>() {
+    });
+
+    private Config mConfig;
 
     @Before
     public void before() {
         Logger.disable();
+        mConfig = new Config()
+                .journalDir(RES_FILE)
+                .addSerializer(LiveboxGsonSerializer.create());
     }
 
     private <T> void assertTestObserver(TestObserver<T> observer, T value) {
@@ -80,7 +88,7 @@ public class LiveboxTest {
      */
     @Test
     public void testFetchWithIgnoreCache() {
-        Livebox.init(new Config());
+        Livebox.init(mConfig);
 
         final Bag<String> bag = new Bag<>("1", new ArrayList<>());
         final Fetcher<Bag<String>> bagFetcher = mockFetcher(bag);
@@ -108,7 +116,7 @@ public class LiveboxTest {
      */
     @Test
     public void testFetchWithSource() {
-        Livebox.init(new Config());
+        Livebox.init(mConfig);
 
         // Setup mock fetcher
         final Bag<String> bag = new Bag<>("1", new ArrayList<>());
@@ -118,7 +126,7 @@ public class LiveboxTest {
         Livebox<Bag<String>, Bag<String>> bagBox = builder
                 .withKey(TEST_KEY)
                 .fetch(bagFetcher, TYPE)
-                .addSource(Sources.MEMORY_LRU, (Validator<Bag<String>>) (key, item) -> true)
+                .addSource(FakeSource.create(), (Validator<Bag<String>>) (key, item) -> true)
                 .ignoreCache(false)
                 .build();
 
@@ -139,7 +147,7 @@ public class LiveboxTest {
      */
     @Test
     public void testFetchWithExpiredAgeValidator() {
-        Livebox.init(new Config().journalDir(RES_FILE));
+        Livebox.init(mConfig);
 
         // Setup mock fetcher
         final Bag<String> bag = new Bag<>("1", new ArrayList<>());
@@ -149,7 +157,7 @@ public class LiveboxTest {
         Livebox<Bag<String>, Bag<String>> bagBox = builder
                 .withKey(TEST_KEY)
                 .fetch(bagFetcher, TYPE)
-                .addSource(Sources.MEMORY_LRU, AgeValidator.create(TimeUnit.SECONDS.toMillis(0)))
+                .addSource(FakeSource.create(), minutes(0))
                 .ignoreCache(false)
                 .build();
 
@@ -166,7 +174,7 @@ public class LiveboxTest {
 
     @Test
     public void testFetchWithAgeValidator() {
-        Livebox.init(new Config().journalDir(RES_FILE));
+        Livebox.init(mConfig);
 
         // Setup mock fetcher
         final Bag<String> bag = new Bag<>("1", new ArrayList<>());
@@ -176,7 +184,7 @@ public class LiveboxTest {
         Livebox<Bag<String>, Bag<String>> bagBox = builder
                 .withKey(TEST_KEY)
                 .fetch(bagFetcher, TYPE)
-                .addSource(Sources.MEMORY_LRU, AgeValidator.create(TimeUnit.SECONDS.toMillis(5)))
+                .addSource(FakeSource.create(), AgeValidator.create(TimeUnit.SECONDS.toMillis(10)))
                 .ignoreCache(false)
                 .build();
 
@@ -187,7 +195,7 @@ public class LiveboxTest {
         // Assert test observer
         assertTestObserver(bagTestObserver, bag);
 
-        // Verify fetcher was called two times
+        // Verify fetcher was called one time
         fetcherCalled(bagFetcher, 1);
     }
 
@@ -199,23 +207,22 @@ public class LiveboxTest {
      */
     @Test
     public void testFetchWithMultipleSources() {
-        Livebox.init(new Config()
+        Livebox.init(mConfig
                 .persistentCacheConfig(new DiskPersistentDataSource.Config(RES_FILE))
-                .journalDir(RES_FILE)
         );
 
         // Setup mock fetcher
         final Bag<String> bag = new Bag<>("1", new ArrayList<>());
         final Fetcher<Bag<String>> bagFetcher = mockFetcher(bag);
 
-        final OnOffValidator<Bag<String>> memoryValidator = new OnOffValidator<>(true);
+        final OnOffValidator<Bag<String>> fakeValidator = new OnOffValidator<>(true);
         final OnOffValidator<Bag<String>> diskValidator = new OnOffValidator<>(true);
 
         final LiveboxBuilder<Bag<String>, Bag<String>> builder = new LiveboxBuilder<>();
         Livebox<Bag<String>, Bag<String>> bagBox = builder
                 .withKey(TEST_KEY)
                 .fetch(bagFetcher, TYPE)
-                .addSource(Sources.MEMORY_LRU, memoryValidator)
+                .addSource(FakeSource.create(), fakeValidator)
                 .addSource(Sources.DISK_PERSISTENT, diskValidator)
                 .ignoreCache(false)
                 .build();
@@ -231,7 +238,7 @@ public class LiveboxTest {
         fetcherCalled(bagFetcher, 1);
 
         // Disable memory data source
-        memoryValidator.setOn(false);
+        fakeValidator.setOn(false);
 
         bagTestObserver = new TestObserver<>();
         bagBox.asObservable().subscribe(bagTestObserver);
@@ -260,7 +267,7 @@ public class LiveboxTest {
      */
     @Test
     public void testFetchWithRetry() {
-        Livebox.init(new Config());
+        Livebox.init(mConfig);
 
         final int[] nrInvocations = {0};
         final Fetcher<Bag<String>> bagFetcher = () -> Observable.fromCallable(() -> {
@@ -288,7 +295,7 @@ public class LiveboxTest {
 
     @Test
     public void testFetchWithConverter() {
-        Livebox.init(new Config());
+        Livebox.init(mConfig);
 
         // Setup mock fetcher
         final Bag<String> bag = new Bag<>("1", singletonList("1"));
@@ -311,7 +318,7 @@ public class LiveboxTest {
 
     @Test
     public void testLiveDataConverter() {
-        Livebox.init(new Config());
+        Livebox.init(mConfig);
 
         // Setup mock fetcher
         final Bag<String> bag = new Bag<>("1", singletonList("1"));
@@ -334,7 +341,7 @@ public class LiveboxTest {
      */
     @Test
     public void testMultipleRequestsWithShare() {
-        Livebox.init(new Config());
+        Livebox.init(mConfig);
 
         // Setup fetcher
         final Bag<String> bag = new Bag<>("1", singletonList("1"));
@@ -367,7 +374,7 @@ public class LiveboxTest {
     @Test
     public void testCustomSourceWithMultipleConverters() {
 
-        Livebox.init(new Config());
+        Livebox.init(mConfig);
 
         // Setup mock fetcher
         final Fetcher<Bag<String>> bagFetcher = mockFetcher(new Bag<>("1", singletonList("1")));
@@ -379,6 +386,10 @@ public class LiveboxTest {
                 .addSource(new FakeSource<Bag<String>, Integer>() {
                     public Optional<Integer> read(String key) {
                         return Optional.of(1);
+                    }
+
+                    public Type getType() {
+                        return Integer.class;
                     }
                 }, (key, item) -> true)
                 .addConverter(Bag.class, Bag::getId)
@@ -396,7 +407,7 @@ public class LiveboxTest {
 
     @Test
     public void testReadFromLocalSourceAndRefresh() {
-        Livebox.init(new Config());
+        Livebox.init(mConfig);
 
         // Setup mock fetcher
         final Bag<String> bag = new Bag<>("1", new ArrayList<>());
@@ -406,7 +417,7 @@ public class LiveboxTest {
         Livebox<Bag<String>, Bag<String>> bagBox = builder
                 .withKey(TEST_KEY)
                 .fetch(bagFetcher, TYPE)
-                .addSource(Sources.MEMORY_LRU, (Validator<Bag<String>>) (key, item) -> true)
+                .addSource(FakeSource.create(), (Validator<Bag<String>>) (key, item) -> true)
                 .ignoreCache(false)
                 .refresh(true)
                 .build();

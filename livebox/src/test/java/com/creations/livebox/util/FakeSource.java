@@ -2,20 +2,29 @@ package com.creations.livebox.util;
 
 import com.creations.livebox.datasources.LocalDataSource;
 
-/**
- * @author Sérgio Serra on 09/09/2018.
- * Criations
- * sergioserra99@gmail.com
+import java.lang.reflect.Type;
+
+/***
+ * Fake source used on testing
+ * @author Sérgio Serra
  */
 public class FakeSource<I, T> implements LocalDataSource<I, T> {
+
+    public static <I, T> FakeSource<I, T> create() {
+        return new FakeSource<>();
+    }
+
+    private I data;
+
     @Override
     public Optional<T> read(String key) {
-        return null;
+        //noinspection unchecked
+        return Optional.ofNullable((T) data);
     }
 
     @Override
     public void save(String key, I input) {
-
+        data = input;
     }
 
     @Override
@@ -23,4 +32,8 @@ public class FakeSource<I, T> implements LocalDataSource<I, T> {
 
     }
 
+    @Override
+    public Type getType() {
+        return null;
+    }
 }
