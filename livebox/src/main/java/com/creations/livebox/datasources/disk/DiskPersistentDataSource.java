@@ -1,9 +1,9 @@
 package com.creations.livebox.datasources.disk;
 
 import com.creations.livebox.datasources.LocalDataSource;
-import com.creations.livebox_common.util.Logger;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox_common.serializers.Serializer;
+import com.creations.livebox_common.util.Logger;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,7 +23,7 @@ import static com.creations.livebox_common.util.OkioUtils.copy;
  * Criations
  * sergioserra99@gmail.com
  */
-public class DiskPersistentDataSource<I> implements LocalDataSource<I> {
+public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
 
     private static final String SUFFIX = "_livebox.json";
     private static Config mConfig;
@@ -35,7 +35,7 @@ public class DiskPersistentDataSource<I> implements LocalDataSource<I> {
         mType = type;
     }
 
-    public static <I> DiskPersistentDataSource<I> create(Serializer serializer, Type type) {
+    public static <I, O> DiskPersistentDataSource<I, O> create(Serializer serializer, Type type) {
         return new DiskPersistentDataSource<>(serializer, type);
     }
 
@@ -44,7 +44,7 @@ public class DiskPersistentDataSource<I> implements LocalDataSource<I> {
     }
 
     @Override
-    public Optional<I> read(String key) {
+    public Optional<O> read(String key) {
         Logger.d(TAG, "Read from disk with  key: " + key);
         return readFromDisk(key);
     }
@@ -65,7 +65,7 @@ public class DiskPersistentDataSource<I> implements LocalDataSource<I> {
         }
     }
 
-    private Optional<I> readFromDisk(String fileName) {
+    private Optional<O> readFromDisk(String fileName) {
 
         final File outputFile = new File(mConfig.getOutputDir(), fileName + SUFFIX);
         if (!outputFile.canRead()) {
@@ -74,7 +74,7 @@ public class DiskPersistentDataSource<I> implements LocalDataSource<I> {
 
         Logger.d(TAG, "File available, read it");
 
-        I data = null;
+        O data = null;
         try {
             final BufferedSource bs = Okio.buffer(Okio.source(outputFile));
             data = mSerializer.deserialize(bs, mType);

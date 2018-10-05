@@ -3,6 +3,7 @@ package com.creations.livebox.datasources.factory;
 import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
+import com.creations.livebox.datasources.memory.InMemoryLruDataSource;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox_common.serializers.Serializer;
 
@@ -10,6 +11,7 @@ import java.lang.reflect.Type;
 
 import static com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources.DISK_LRU;
 import static com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources.DISK_PERSISTENT;
+import static com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources.MEMORY_LRU;
 
 /**
  * @author Sérgio Serra on 26/08/2018.
@@ -27,11 +29,15 @@ public final class LiveboxDataSourceFactory<I> implements DataSourceFactory<I> {
     }
 
     @Override
-    public Optional<LocalDataSource<I>> get(int id) {
-        LocalDataSource<I> dataSource = null;
+    public <T> Optional<LocalDataSource<I, T>> get(int id) {
+        LocalDataSource<I, T> dataSource = null;
         switch (id) {
             case DISK_LRU:
                 dataSource = DiskLruDataSource.create(mSerializer, mType);
+                break;
+            case MEMORY_LRU:
+                //noinspection unchecked
+                dataSource = (LocalDataSource<I, T>) InMemoryLruDataSource.create();
                 break;
             case DISK_PERSISTENT:
                 dataSource = DiskPersistentDataSource.create(mSerializer, mType);
@@ -41,6 +47,7 @@ public final class LiveboxDataSourceFactory<I> implements DataSourceFactory<I> {
     }
 
     public static abstract class Sources {
+        public static final int MEMORY_LRU = 1000;
         public static final int DISK_LRU = 2000;
         public static final int DISK_PERSISTENT = 3000;
     }
