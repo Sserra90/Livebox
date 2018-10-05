@@ -50,6 +50,11 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
     }
 
     @Override
+    public Type getType() {
+        return mType;
+    }
+
+    @Override
     public Optional<O> read(String key) {
         OptionalStream<SnapshotInputStream> iis = mDiskCache.get(key);
         Logger.d(TAG, "Read from disk cache is present: %s with key: %s", iis.isPresent(), key);

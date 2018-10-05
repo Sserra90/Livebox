@@ -6,14 +6,13 @@ import com.creations.livebox.config.Config;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
 import com.creations.livebox.datasources.fetcher.Fetcher;
-import com.creations.livebox.datasources.memory.InMemoryLruDataSource;
 import com.creations.livebox.util.FakeSource;
-import com.creations.livebox_common.util.Logger;
 import com.creations.livebox.util.OnOffValidator;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
 import com.creations.livebox_common.util.Bag;
+import com.creations.livebox_common.util.Logger;
 import com.google.gson.reflect.TypeToken;
 
 import org.junit.After;
@@ -299,7 +298,7 @@ public class LiveboxTest {
         Livebox<Bag<String>, String> bagBox = builder
                 .withKey(TEST_KEY)
                 .fetch(bagFetcher, TYPE)
-                .addConverter(Bag.class, o -> Optional.of(o.getId()))
+                .addConverter(Bag.class, Bag::getId)
                 .ignoreCache(true)
                 .build();
 
@@ -382,8 +381,8 @@ public class LiveboxTest {
                         return Optional.of(1);
                     }
                 }, (key, item) -> true)
-                .addConverter(Bag.class, o -> Optional.of(o.getId()))
-                .addConverter(Integer.class, o -> Optional.of(String.valueOf(o)))
+                .addConverter(Bag.class, Bag::getId)
+                .addConverter(Integer.class, String::valueOf)
                 .ignoreCache(false)
                 .build();
 
@@ -429,7 +428,6 @@ public class LiveboxTest {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @After
     public void tearDown() {
-        InMemoryLruDataSource.create().clear(TEST_KEY);
         if (RES_FILE.exists()) {
             File[] files = RES_FILE.listFiles((dir, name) -> name.startsWith(TEST_KEY));
             for (File file : files) {

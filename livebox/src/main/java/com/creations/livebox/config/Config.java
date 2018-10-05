@@ -27,6 +27,9 @@ public final class Config {
     private Serializer mSerializer;
     private File mJournalDir;
 
+    public Config() {
+    }
+
     public Config(Context context) {
         final File lruCacheDir = Utils.getCacheDirectory(context, LRU_DISK_CACHE_DIR);
         final long lurCacheSize = Utils.getCacheSizeInBytes(

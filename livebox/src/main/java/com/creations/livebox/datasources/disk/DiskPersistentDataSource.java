@@ -65,6 +65,11 @@ public class DiskPersistentDataSource<I, O> implements LocalDataSource<I, O> {
         }
     }
 
+    @Override
+    public Type getType() {
+        return mType;
+    }
+
     private Optional<O> readFromDisk(String fileName) {
 
         final File outputFile = new File(mConfig.getOutputDir(), fileName + SUFFIX);

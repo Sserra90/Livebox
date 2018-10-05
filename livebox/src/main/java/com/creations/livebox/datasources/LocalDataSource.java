@@ -2,6 +2,8 @@ package com.creations.livebox.datasources;
 
 import com.creations.livebox.util.Optional;
 
+import java.lang.reflect.Type;
+
 /**
  * @author Sérgio Serra on 25/08/2018.
  * Criations
@@ -13,4 +15,6 @@ public interface LocalDataSource<I, T> {
     void save(String key, I input);
 
     void clear(String key);
+
+    Type getType();
 }

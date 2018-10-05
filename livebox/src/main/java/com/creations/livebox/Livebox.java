@@ -167,7 +167,7 @@ public class Livebox<I, O> {
      *
      * @return an Observable that will emit an {@link Optional} that may or may not contain data.
      */
-    private Optional<?> readFromLocalSources() {
+    private Payload<?> readFromLocalSources() {
         Logger.d(TAG, "Try to read from local data sources");
 
         for (LocalDataSource<I, ?> source : mLocalSources) {
@@ -187,17 +187,17 @@ public class Livebox<I, O> {
             }
 
             Logger.d(TAG, "---> Data from source " + source + " is valid");
-            return data;
+            return new Payload<>(data.get(), source.getType());
         }
 
         Logger.d(TAG, "---> No valid data found");
-        return Optional.empty();
+        return new Payload<>();
     }
 
     // Maps data from local data source type -> output type
-    private Observable<O> returnLocalData(Object localData) throws Exception {
-        Logger.d(TAG, "returnLocalData() called with: localData = [" + localData + "]");
-        return Observable.just(convert(localData));
+    private Observable<O> returnLocalData(Object localData, Type type) throws Exception {
+        Logger.d(TAG, "Return local data: %s", localData);
+        return Observable.just(convert(localData, type));
     }
 
     /**
@@ -214,7 +214,7 @@ public class Livebox<I, O> {
         }
 
         return obs
-                .map(this::convert)
+                .map(i -> convert(i, mType))
                 .compose(Transformers.withRetry(mRetryOnFailure, mRetryStrategy));
     }
 
@@ -237,14 +237,14 @@ public class Livebox<I, O> {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> O convert(T data) throws Exception {
+    private <T> O convert(T data, Type type) throws Exception {
 
         Converter<T, O> converter;
         if (mConverterFactory.isPresent()) {
             Logger.d(TAG, "Using converter factory");
             converter = mConverterFactory.get().get((Class<T>) data.getClass());
         } else {
-            converter = (Converter<T, O>) mConvertersMap.get(mType);
+            converter = (Converter<T, O>) mConvertersMap.get(type);
         }
 
         if (nonNull(converter)) {
@@ -283,11 +283,11 @@ public class Livebox<I, O> {
         // Get data from local source.
         Observable<O> retObservable = Observable
                 .fromCallable(this::readFromLocalSources)
-                .flatMap((Function<Optional<?>, Observable<O>>) localResult -> {
+                .flatMap((Function<Payload<?>, Observable<O>>) payload -> {
 
                     // Local data is invalid, return an Observable that fetches remote data and
                     // saves to local data sources.
-                    if (localResult.isAbsent()) {
+                    if (payload.data().isAbsent()) {
                         Logger.d(TAG, "Local data is invalid, hit remote data source and save");
                         return fetch(true);
                     }
@@ -297,11 +297,11 @@ public class Livebox<I, O> {
                     // that emits local data, fetches the latest data from remote source and saves it.
                     if (!mRefresh) {
                         Logger.d(TAG, "Local data is valid, do not hit remote data source");
-                        return returnLocalData(localResult.get());
+                        return returnLocalData(payload.data().get(), payload.type());
                     } else {
                         Logger.d(TAG, "Local data is valid but still hit remote data source to refresh data");
                         return Observable.concat(
-                                returnLocalData(localResult.get()),
+                                returnLocalData(payload.data().get(), payload.type()),
                                 fetch(true)
                         );
                     }
@@ -399,5 +399,27 @@ public class Livebox<I, O> {
 
     public static Config getConfig() {
         return mConfig;
+    }
+
+    private static class Payload<T> {
+        Type type;
+        T data;
+
+        Payload() {
+        }
+
+        Payload(T data, Type type) {
+            this.type = type;
+            this.data = data;
+        }
+
+        public Type type() {
+            return type;
+        }
+
+        public Optional<T> data() {
+            return Optional.ofNullable(data);
+        }
+
     }
 }
