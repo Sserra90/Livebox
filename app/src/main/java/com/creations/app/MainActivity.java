@@ -23,8 +23,6 @@ import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Source
 import com.creations.livebox.util.Objects;
 import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
-import com.creations.serializer_gson.LiveboxGsonSerializer;
-import com.google.gson.reflect.TypeToken;
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider;
 
 import java.lang.reflect.Type;
@@ -39,6 +37,7 @@ import static com.creations.convert_jackson.util.Util.fromRef;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    private static final String LRU_DISK_CACHE_DIR = "livebox_disk_lru_cache";
 
     private Livebox<UsersRes, Users> usersBox;
     private Livebox<List<String>, List<Integer>> box;
@@ -54,13 +53,8 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(view -> getUsers());
 
         final GithubService service = Api.getInstance().getGithubService();
+
         Livebox.init(new Config(this).addSerializer(LiveboxJacksonSerializer.create()));
-        /*Livebox.init(new Config()
-                .lruCacheConfig(new DiskLruDataSource.Config(
-                        new File("somePath"), 10
-                ))
-                .addSerializer(LiveboxGsonSerializer.create())
-        );*/
 
         Validator<UsersRes> persistentDiskValidator = (key, item) -> Objects.nonNull(item) && !item.getItems().isEmpty();
         Validator<UsersRes> diskValidator = (key, item) -> Objects.nonNull(item) && !item.getItems().isEmpty();
@@ -93,9 +87,12 @@ public class MainActivity extends AppCompatActivity {
         Type type = fromRef(new Util.TypeRef<List<String>>() {
         });
 
+        final List<String> data = new ArrayList<>();
+        data.add("1");
+
         box = new LiveboxBuilder<List<String>, List<Integer>>()
                 .withKey("some_key")
-                .fetch(() -> Observable.just(new ArrayList<>()), type)
+                .fetch(() -> Observable.just(data), type)
                 .addSource(Sources.DISK_LRU, (a, b) -> true)
                 .addConverter(type, (Converter<List<String>, List<Integer>>) t -> new ArrayList<>())
                 .build();

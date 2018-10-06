@@ -37,7 +37,12 @@ public class LiveboxGsonSerializer implements Serializer {
 
     @Override
     public <T> BufferedSource serialize(T input, Type type) {
-        return bufferedSource(readerInputStreamUtf8(mGson.toJson(input, type)));
+        try {
+            return bufferedSource(readerInputStreamUtf8(mGson.toJson(input, type)));
+        } catch (JsonIOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override

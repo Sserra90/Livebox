@@ -15,8 +15,6 @@ import java.lang.reflect.Type;
 
 import okio.BufferedSource;
 
-import static com.creations.livebox_common.util.Logger.*;
-
 /**
  * @author Sérgio Serra on 25/08/2018.
  * Criations
@@ -48,7 +46,7 @@ public class LiveboxJacksonSerializer implements Serializer {
 
         if (JavaType.class.isAssignableFrom(type.getClass())) {
             try {
-                Logger.d(TAG, "Deserialize for type", type);
+                Logger.d(TAG, "Deserialize for type: "+ type);
                 return mObjectMapper.readValue(source.inputStream(), (JavaType) type);
             } catch (JsonParseException e) {
                 e.printStackTrace();
@@ -65,8 +63,11 @@ public class LiveboxJacksonSerializer implements Serializer {
     @Override
     public <T> BufferedSource serialize(T input, Type type) {
         try {
-            Logger.d(TAG, "Serialize for type", type.toString());
-            return OkioUtils.bufferedSource(new ByteArrayInputStream(mObjectMapper.writeValueAsBytes(input)));
+            Logger.d(TAG, "Serialize for type: "+ type);
+            byte[] bytes = mObjectMapper.writeValueAsBytes(input);
+            if (bytes != null && bytes.length > 0) {
+                return OkioUtils.bufferedSource(new ByteArrayInputStream(bytes));
+            }
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

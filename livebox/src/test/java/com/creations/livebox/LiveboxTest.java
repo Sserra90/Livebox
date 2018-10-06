@@ -3,6 +3,7 @@ package com.creations.livebox;
 import android.arch.core.executor.testing.InstantTaskExecutorRule;
 
 import com.creations.livebox.config.Config;
+import com.creations.livebox.converters.Converter;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
 import com.creations.livebox.datasources.fetcher.Fetcher;
@@ -301,11 +302,12 @@ public class LiveboxTest {
         final Bag<String> bag = new Bag<>("1", singletonList("1"));
         final Fetcher<Bag<String>> bagFetcher = mockFetcher(bag);
 
+
         final LiveboxBuilder<Bag<String>, String> builder = new LiveboxBuilder<>();
         Livebox<Bag<String>, String> bagBox = builder
                 .withKey(TEST_KEY)
                 .fetch(bagFetcher, TYPE)
-                .addConverter(Bag.class, Bag::getId)
+                .addConverter(TYPE, (Converter<Bag<String>, String>) Bag::getId)
                 .ignoreCache(true)
                 .build();
 

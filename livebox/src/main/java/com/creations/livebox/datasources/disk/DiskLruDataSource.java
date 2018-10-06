@@ -20,6 +20,7 @@ import java.util.concurrent.Executors;
 import okio.BufferedSource;
 
 import static com.creations.livebox.Livebox.TAG;
+import static com.creations.livebox.util.Objects.nonNull;
 import static com.creations.livebox_common.util.OkioUtils.bufferedSource;
 import static com.creations.livebox_common.util.OkioUtils.copy;
 
@@ -72,8 +73,11 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
         Logger.d(TAG, "Save to disk cache is present: %s with key: %s", oos.isPresent(), key);
         if (oos.isPresent()) {
             try {
-                writeToCacheOutputStream(mSerializer.serialize(input, mType), oos.get());
-                oos.get().commit();
+                BufferedSource s = mSerializer.serialize(input, mType);
+                if (nonNull(s)) {
+                    writeToCacheOutputStream(s, oos.get());
+                    oos.get().commit();
+                }
             } finally {
                 oos.get().abortUnlessCommitted();
             }
@@ -108,9 +112,9 @@ public class DiskLruDataSource<I, O> implements LocalDataSource<I, O> {
         private File mCacheDir;
         private long mCacheSize;
 
-        public Config(File mCacheDir, long mCacheSize) {
-            this.mCacheDir = mCacheDir;
-            this.mCacheSize = mCacheSize;
+        public Config(File cacheDir, long cacheSize) {
+            mCacheDir = cacheDir;
+            mCacheSize = Math.max(0, cacheSize);
         }
 
         File getCacheDir() {
