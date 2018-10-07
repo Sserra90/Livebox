@@ -318,7 +318,7 @@ public class LiveboxTest {
         assertTestObserver(bagTestObserver, "1");
     }
 
-    @Test
+    /*@Test
     public void testLiveDataConverter() {
         Livebox.init(mConfig);
 
@@ -334,7 +334,7 @@ public class LiveboxTest {
                 .build();
 
         bagBox.asLiveData().observeForever(bag1 -> assertEquals(bag, bag1));
-    }
+    }*/
 
     /**
      * Make two requests for the same key.

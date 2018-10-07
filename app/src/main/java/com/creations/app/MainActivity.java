@@ -21,18 +21,17 @@ import com.creations.livebox.config.Config;
 import com.creations.livebox.converters.Converter;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
 import com.creations.livebox.util.Objects;
-import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
 
 import static com.creations.convert_jackson.util.Util.fromRef;
+import static com.creations.livebox.validator.AgeValidator.minutes;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -61,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         Validator<UsersRes> memoryValidator = (key, item) -> Objects.nonNull(item) && !item.getItems().isEmpty();
 
         // 2 minutes TTL(time to live)
-        Validator<UsersRes> ageValidator = AgeValidator.create(TimeUnit.MINUTES.toMillis(2));
+        Validator<UsersRes> ageValidator = minutes(2);
 
         //TypeToken<List<UsersRes>> token = new TypeToken<List<UsersRes>>() {};
 /*

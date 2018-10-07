@@ -3,10 +3,8 @@ package com.creations.convert_jackson;
 import com.creations.livebox_common.serializers.Serializer;
 import com.creations.livebox_common.util.Logger;
 import com.creations.livebox_common.util.OkioUtils;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayInputStream;
@@ -44,17 +42,17 @@ public class LiveboxJacksonSerializer implements Serializer {
             return null;
         }
 
-        if (JavaType.class.isAssignableFrom(type.getClass())) {
-            try {
-                Logger.d(TAG, "Deserialize for type: "+ type);
+        try {
+            if (Class.class.isAssignableFrom(type.getClass())) {
+                Logger.d(TAG, "Deserialize for class: " + type);
+                //noinspection unchecked
+                return mObjectMapper.readValue(source.inputStream(), (Class<T>) type);
+            } else if (JavaType.class.isAssignableFrom(type.getClass())) {
+                Logger.d(TAG, "Deserialize for type: " + type);
                 return mObjectMapper.readValue(source.inputStream(), (JavaType) type);
-            } catch (JsonParseException e) {
-                e.printStackTrace();
-            } catch (JsonMappingException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         return null;
@@ -63,7 +61,7 @@ public class LiveboxJacksonSerializer implements Serializer {
     @Override
     public <T> BufferedSource serialize(T input, Type type) {
         try {
-            Logger.d(TAG, "Serialize for type: "+ type);
+            Logger.d(TAG, "Serialize for type: " + type);
             byte[] bytes = mObjectMapper.writeValueAsBytes(input);
             if (bytes != null && bytes.length > 0) {
                 return OkioUtils.bufferedSource(new ByteArrayInputStream(bytes));
