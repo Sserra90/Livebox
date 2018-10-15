@@ -3,6 +3,7 @@ package com.creations.livebox.config;
 
 import android.content.Context;
 
+import com.creations.livebox.adapters.AndroidAdapter;
 import com.creations.livebox.datasources.disk.DiskLruDataSource;
 import com.creations.livebox.datasources.disk.DiskPersistentDataSource;
 import com.creations.livebox.util.io.Utils;
@@ -10,6 +11,7 @@ import com.creations.livebox_common.serializers.Serializer;
 
 import java.io.File;
 
+import io.reactivex.Scheduler;
 import io.reactivex.internal.functions.ObjectHelper;
 
 public final class Config {
@@ -72,8 +74,15 @@ public final class Config {
         return this;
     }
 
-    public Config log(boolean val) {
-        mDisableLogging = val;
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public Config setSchedulerProvider(AndroidAdapter.SchedulerProvider schedulerProvider) {
+        ObjectHelper.requireNonNull(schedulerProvider, "Scheduler instance cannot be null");
+        AndroidAdapter.setSchedulerProvider(schedulerProvider);
+        return this;
+    }
+
+    public Config disableLog() {
+        mDisableLogging = false;
         return this;
     }
 
@@ -86,7 +95,7 @@ public final class Config {
     }
 
     public boolean isLoggingDisabled() {
-        return mDisableLogging;
+        return !mDisableLogging;
     }
 
     public DiskPersistentDataSource.Config getPersistentConfig() {

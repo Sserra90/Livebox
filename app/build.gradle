@@ -40,6 +40,7 @@ ext {
     retrofit = "2.3.0"
     room = "1.1.1"
     autoDispose = "1.0.0-RC2"
+    powerMock = "1.7.4"
 }
 
 dependencies {
@@ -76,6 +77,8 @@ dependencies {
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.7.9.4'
 
     testImplementation 'junit:junit:4.12'
+    testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: "$powerMock"
+    testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: "$powerMock"
 
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'

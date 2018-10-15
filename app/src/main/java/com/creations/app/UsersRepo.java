@@ -19,7 +19,7 @@ class UsersRepo {
 
     Observable<List<Integer>> getUsers() {
 
-        Type type = fromRef(new Util.TypeRef<List<String>>() {
+        final Type type = fromRef(new Util.TypeRef<List<String>>() {
         });
 
         final List<String> data = new ArrayList<>();

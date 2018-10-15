@@ -54,13 +54,11 @@ public class Livebox<I, O> {
         mInit = true;
         mConfig = config;
 
-        Logger.d(TAG, "Init with config: " + config);
-
         if (config.isLoggingDisabled()) {
             Logger.disable();
-        } else {
-            Logger.setLevel(Logger.ERROR);
         }
+
+        Logger.d(TAG, "Init with config: " + config);
 
         if (isNull(config.getSerializer())) {
             throw new IllegalArgumentException("Serializer cannot be null, please call Config#addSerializer()");
@@ -77,7 +75,7 @@ public class Livebox<I, O> {
     // Keeps a record of in-flight requests.
     private static final ConcurrentHashMap<BoxKey, Observable> inFlightRequests = new ConcurrentHashMap<>();
 
-    // Journal that keeps a log of requests timestamps
+    // Journal that keeps a disableLog of requests timestamps
     public static Journal journal;
 
     private static Config mConfig;
