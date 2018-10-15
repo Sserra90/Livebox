@@ -3,6 +3,7 @@ package com.creations.livebox;
 import android.arch.lifecycle.LiveData;
 
 import com.creations.livebox.LiveboxBuilder.RetryStrategy;
+import com.creations.livebox.adapters.AndroidAdapter;
 import com.creations.livebox.adapters.AutoDisposeAdapter;
 import com.creations.livebox.adapters.LiveDataAdapter;
 import com.creations.livebox.adapters.ObservableAdapter;
@@ -54,6 +55,12 @@ public class Livebox<I, O> {
         mConfig = config;
 
         Logger.d(TAG, "Init with config: " + config);
+
+        if (config.isLoggingDisabled()) {
+            Logger.disable();
+        } else {
+            Logger.setLevel(Logger.ERROR);
+        }
 
         if (isNull(config.getSerializer())) {
             throw new IllegalArgumentException("Serializer cannot be null, please call Config#addSerializer()");
@@ -137,7 +144,8 @@ public class Livebox<I, O> {
             boolean isUsingAgeValidator, Fetcher<I> fetcher, List<LocalDataSource<I, ?>> localSources,
             Map<LocalDataSource<I, ?>, Validator> validators,
             Map<Type, Converter<?, O>> convertersMap,
-            Optional<ConvertersFactory<O>> converterFactory) {
+            Optional<ConvertersFactory<O>> converterFactory
+    ) {
 
         if (!mInit) {
             throw new IllegalStateException("You must call Livebox.init() before creating any instance");
@@ -320,9 +328,7 @@ public class Livebox<I, O> {
      * and observer in {@link AndroidSchedulers#mainThread()}
      */
     public Observable<O> asAndroidObservable() {
-        return asObservable()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+        return as(new AndroidAdapter<>());
     }
 
     /**
@@ -331,7 +337,7 @@ public class Livebox<I, O> {
      * @return {@link LiveData} instance
      */
     public LiveData<O> asLiveData() {
-        return new LiveDataAdapter<O>().adapt(asAndroidObservable());
+        return as(new LiveDataAdapter<O>());
     }
 
     /**
@@ -341,7 +347,7 @@ public class Livebox<I, O> {
      * @return ObservableSubscribeProxy
      */
     public ObservableSubscribeProxy<O> scoped(LifecycleScopeProvider scopeProvider) {
-        return AutoDisposeAdapter.<O>android(scopeProvider).adapt(asObservable());
+        return as(AutoDisposeAdapter.android(scopeProvider));
     }
 
     // Uses passed adapter to adapt the result observable.

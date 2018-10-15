@@ -26,6 +26,7 @@ public final class Config {
     private DiskPersistentDataSource.Config mPersistentConfig;
     private Serializer mSerializer;
     private File mJournalDir;
+    private boolean mDisableLogging;
 
     public Config() {
     }
@@ -71,12 +72,21 @@ public final class Config {
         return this;
     }
 
+    public Config log(boolean val) {
+        mDisableLogging = val;
+        return this;
+    }
+
     public File getJournalDir() {
         return mJournalDir;
     }
 
     public DiskLruDataSource.Config getLruConfig() {
         return mLruConfig;
+    }
+
+    public boolean isLoggingDisabled() {
+        return mDisableLogging;
     }
 
     public DiskPersistentDataSource.Config getPersistentConfig() {

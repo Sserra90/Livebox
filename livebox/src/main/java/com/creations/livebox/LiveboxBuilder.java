@@ -3,6 +3,7 @@ package com.creations.livebox;
 import android.support.annotation.NonNull;
 
 import com.creations.livebox.Livebox.BoxKey;
+import com.creations.livebox.adapters.ObservableAdapter;
 import com.creations.livebox.converters.Converter;
 import com.creations.livebox.converters.ConvertersFactory;
 import com.creations.livebox.datasources.LocalDataSource;
@@ -12,12 +13,14 @@ import com.creations.livebox.datasources.fetcher.Fetcher;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.AgeValidator;
 import com.creations.livebox.validator.Validator;
+import com.creations.livebox_common.util.Logger;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import static com.creations.livebox.util.Objects.isNull;
 
