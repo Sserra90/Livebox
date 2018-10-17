@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 
-group = 'org.bitbucket.Sserra.livebox'
+group = 'com.github.Sserra90.livebox'
 
 android {
     compileSdkVersion 27
@@ -35,7 +35,5 @@ ext {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-
     api "com.squareup.okio:okio:$okio"
-
 }

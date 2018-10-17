@@ -41,17 +41,19 @@ ext {
     room = "1.1.1"
     autoDispose = "1.0.0-RC2"
     powerMock = "1.7.4"
+    livebox = "498f4f5aac"
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation project(":livebox")
-    implementation project(":serializer-jackson")
-    implementation project(":serializer-gson")
+    //implementation project(":livebox")
+    //implementation project(":serializer-jackson")
+    //implementation project(":serializer-gson")
 
-    //implementation 'org.bitbucket.Sserra.livebox:livebox:dev-SNAPSHOT'
-    //implementation 'org.bitbucket.Sserra.livebox:serializer-gson:dev-SNAPSHOT'
+    implementation "com.github.Sserra90.livebox:livebox:dev-SNAPSHOT"
+    implementation "com.github.Sserra90.livebox:serializer-gson:dev-SNAPSHOT"
+    implementation "com.github.Sserra90.livebox:serializer-jackson:dev-SNAPSHOT"
 
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'

@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 
 // Jitpack group
-group = 'org.bitbucket.Sserra'
+group = 'com.github.Sserra90'
 
 android {
     compileSdkVersion 27
