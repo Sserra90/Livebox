@@ -101,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("CheckResult")
     private void getUsers() {
 
+
         //usersBox.as(new LiveDataAdapter<>()).observe(this, users -> Log.d(TAG, "UsersRes: " + users));
         //usersBox.asLiveData().observe(this, users -> Log.d(TAG, "UsersRes: " + users));
 

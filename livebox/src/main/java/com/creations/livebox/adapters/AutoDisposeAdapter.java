@@ -1,5 +1,6 @@
 package com.creations.livebox.adapters;
 
+import com.creations.livebox_common.adapter.ObservableAdapter;
 import com.uber.autodispose.AutoDispose;
 import com.uber.autodispose.ObservableSubscribeProxy;
 import com.uber.autodispose.lifecycle.LifecycleScopeProvider;

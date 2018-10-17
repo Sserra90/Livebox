@@ -1,12 +1,9 @@
 package com.creations.livebox;
 
-import android.arch.lifecycle.LiveData;
 
 import com.creations.livebox.LiveboxBuilder.RetryStrategy;
 import com.creations.livebox.adapters.AndroidAdapter;
 import com.creations.livebox.adapters.AutoDisposeAdapter;
-import com.creations.livebox.adapters.LiveDataAdapter;
-import com.creations.livebox.adapters.ObservableAdapter;
 import com.creations.livebox.config.Config;
 import com.creations.livebox.converters.Converter;
 import com.creations.livebox.converters.ConvertersFactory;
@@ -18,6 +15,7 @@ import com.creations.livebox.rx.Transformers;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.Journal;
 import com.creations.livebox.validator.Validator;
+import com.creations.livebox_common.adapter.ObservableAdapter;
 import com.creations.livebox_common.util.Logger;
 import com.uber.autodispose.ObservableSubscribeProxy;
 import com.uber.autodispose.lifecycle.LifecycleScopeProvider;
@@ -334,9 +332,10 @@ public class Livebox<I, O> {
      *
      * @return {@link LiveData} instance
      */
-    public LiveData<O> asLiveData() {
+    /*public LiveData<O> asLiveData() {
         return as(new LiveDataAdapter<O>());
     }
+*/
 
     /**
      * Scopes the Observable within {@param LifecycleScopeProvider}

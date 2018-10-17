@@ -1,4 +1,4 @@
-package com.creations.livebox.adapters;
+package com.creations.livebox_common.adapter;
 
 import io.reactivex.Observable;
 

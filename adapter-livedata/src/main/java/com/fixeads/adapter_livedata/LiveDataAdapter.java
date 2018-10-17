@@ -1,7 +1,9 @@
-package com.creations.livebox.adapters;
+package com.fixeads.adapter_livedata;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.LiveDataReactiveStreams;
+
+import com.creations.livebox_common.adapter.ObservableAdapter;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Observable;

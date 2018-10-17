@@ -1,1 +1,1 @@
-include ':app', ':livebox', ':serializer-jackson', ':livebox-common', ':serializer-gson'
+include ':app', ':livebox', ':serializer-jackson', ':livebox-common', ':serializer-gson', ':adapter-livedata'

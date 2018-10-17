@@ -1,5 +1,7 @@
 package com.creations.livebox.adapters;
 
+import com.creations.livebox_common.adapter.ObservableAdapter;
+
 import io.reactivex.Observable;
 import io.reactivex.Scheduler;
 import io.reactivex.schedulers.Schedulers;

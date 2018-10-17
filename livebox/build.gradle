@@ -47,9 +47,6 @@ dependencies {
 
     api project(":livebox-common")
 
-    implementation "android.arch.lifecycle:extensions:$lifecycle_version"
-    implementation "android.arch.lifecycle:reactivestreams:$lifecycle_version"
-
     implementation "com.uber.autodispose:autodispose:$autoDispose"
     implementation "com.uber.autodispose:autodispose-lifecycle:$autoDispose"
 

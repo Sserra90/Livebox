@@ -3,7 +3,7 @@ apply plugin: 'com.github.dcendents.android-maven'
 
 group = 'com.github.Sserra90.livebox'
 
-android {
+android{
     compileSdkVersion 27
 
     compileOptions {
@@ -16,7 +16,6 @@ android {
         targetSdkVersion 27
         versionCode 1
         versionName "0.1-BETA"
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -29,14 +28,15 @@ android {
 
 }
 
-ext {
-    okio = "1.15.0"
-    rxjava = "2.2.1"
+ext{
+    lifecycle_version = "1.1.1"
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    api "com.squareup.okio:okio:$okio"
-    api "io.reactivex.rxjava2:rxjava:$rxjava"
+    implementation project(":livebox-common")
 
+    implementation "android.arch.lifecycle:extensions:$lifecycle_version"
+    implementation "android.arch.lifecycle:reactivestreams:$lifecycle_version"
 }
+
