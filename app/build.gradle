@@ -1,0 +1,89 @@
+apply plugin: 'com.android.application'
+
+configurations.all {
+    resolutionStrategy {
+        eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'android.arch.lifecycle') {
+                details.useVersion "1.1.1"
+            }
+        }
+    }
+}
+
+android {
+
+    compileSdkVersion 27
+    defaultConfig {
+        applicationId "com.creations.livebox"
+        minSdkVersion 16
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+ext {
+    rxandroid = "2.0.2"
+    rxjava = "2.2.1"
+    retrofit = "2.3.0"
+    room = "1.1.1"
+    autoDispose = "1.0.0-RC2"
+    powerMock = "1.7.4"
+    livebox = "498f4f5aac"
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation project(":livebox")
+    implementation project(":serializer-jackson")
+    implementation project(":serializer-gson")
+    implementation project(":adapter-livedata")
+    implementation project(":adapter-autodispose")
+
+    //implementation "com.github.Sserra90.livebox:livebox:$livebox"
+    //implementation "com.github.Sserra90.livebox:serializer-gson:$livebox"
+    //implementation "com.github.Sserra90.livebox:serializer-jackson:$livebox"
+
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    implementation 'com.android.support:design:27.1.1'
+
+    implementation "com.uber.autodispose:autodispose-android-archcomponents:$autoDispose"
+
+    // Room
+    implementation "android.arch.persistence.room:runtime:$room"
+    implementation "android.arch.persistence.room:rxjava2:$room"
+    annotationProcessor "android.arch.persistence.room:compiler:$room"
+
+    implementation "io.reactivex.rxjava2:rxandroid:$rxandroid"
+    implementation "io.reactivex.rxjava2:rxjava:$rxjava"
+
+    // 3rd Party: Network - Retrofit2
+    implementation ("com.squareup.retrofit2:retrofit:$retrofit")
+    implementation "com.squareup.retrofit2:converter-gson:$retrofit"
+    implementation "com.squareup.retrofit2:adapter-rxjava:$retrofit"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit"
+
+    // Jackson
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.7.9.4'
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: "$powerMock"
+    testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: "$powerMock"
+
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
