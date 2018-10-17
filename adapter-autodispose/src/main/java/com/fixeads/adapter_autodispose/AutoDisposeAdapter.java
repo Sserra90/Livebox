@@ -1,4 +1,4 @@
-package com.creations.livebox.adapters;
+package com.fixeads.adapter_autodispose;
 
 import com.creations.livebox_common.adapter.ObservableAdapter;
 import com.uber.autodispose.AutoDispose;
@@ -41,6 +41,6 @@ public class AutoDisposeAdapter<T> implements ObservableAdapter<T, ObservableSub
                     .observeOn(AndroidSchedulers.mainThread());
         }
 
-        return observable.as(AutoDispose.autoDisposable(mLifecycleScope));
+        return observable.as(AutoDispose.<T>autoDisposable(mLifecycleScope));
     }
 }

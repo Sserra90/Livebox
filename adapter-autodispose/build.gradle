@@ -4,20 +4,17 @@ apply plugin: 'com.github.dcendents.android-maven'
 group = 'com.github.Sserra90.livebox'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
-        versionName "0.1-BETA"
+        versionName "1.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
     }
 
     buildTypes {
@@ -30,15 +27,14 @@ android {
 }
 
 ext {
-    okio = "1.15.0"
-    rxjava = "2.2.1"
-    rxandroid = "2.0.2"
+    autoDispose = "1.0.0-RC2"
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    api "com.squareup.okio:okio:$okio"
-    api "io.reactivex.rxjava2:rxjava:$rxjava"
-    api "io.reactivex.rxjava2:rxandroid:$rxandroid"
+    implementation project(":livebox-common")
+
+    implementation "com.uber.autodispose:autodispose:$autoDispose"
+    implementation "com.uber.autodispose:autodispose-lifecycle:$autoDispose"
 
 }

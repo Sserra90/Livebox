@@ -51,6 +51,7 @@ dependencies {
     implementation project(":serializer-jackson")
     implementation project(":serializer-gson")
     implementation project(":adapter-livedata")
+    implementation project(":adapter-autodispose")
 
     //implementation "com.github.Sserra90.livebox:livebox:$livebox"
     //implementation "com.github.Sserra90.livebox:serializer-gson:$livebox"

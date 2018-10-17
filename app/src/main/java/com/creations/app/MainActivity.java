@@ -22,6 +22,7 @@ import com.creations.livebox.converters.Converter;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
 import com.creations.livebox.util.Objects;
 import com.creations.livebox.validator.Validator;
+import com.fixeads.adapter_autodispose.AutoDisposeAdapter;
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider;
 
 import java.lang.reflect.Type;
@@ -106,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         //usersBox.asLiveData().observe(this, users -> Log.d(TAG, "UsersRes: " + users));
 
         //liveData.observe(this, users -> Log.d(TAG, "UsersRes: " + users));
-        box.scoped(AndroidLifecycleScopeProvider.from(this))
+        box.as(AutoDisposeAdapter.android(AndroidLifecycleScopeProvider.from(this)))
                 .subscribe(data -> Log.d(TAG, "Data: " + data), Throwable::printStackTrace);
 
     }
