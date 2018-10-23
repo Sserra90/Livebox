@@ -33,7 +33,7 @@ public class LiveboxGsonSerializerTest {
         final Bag<String> bag = new Bag<>("100", values);
 
         // Exercise
-        final Serializer serializer = LiveboxGsonSerializer.create(new Gson());
+        final Serializer serializer = LiveboxGsonSerializer.Companion.create(new Gson());
         final Bag newBag = serializer.deserialize(serializer.serialize(bag, Bag.class), Bag.class);
 
         // Verify
@@ -51,7 +51,7 @@ public class LiveboxGsonSerializerTest {
         // Exercise
         TypeToken<List<Bag<String>>> bagType = new TypeToken<List<Bag<String>>>() {
         };
-        final Serializer serializer = LiveboxGsonSerializer.create(new Gson());
+        final Serializer serializer = LiveboxGsonSerializer.Companion.create(new Gson());
         final List<Bag<String>> bags = serializer.deserialize(source, bagType.getType());
 
         final BufferedSource serializeSource = serializer.serialize(bags, bagType.getType());

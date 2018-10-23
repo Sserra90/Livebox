@@ -1,16 +1,15 @@
 package com.creations.app.entities;
 
-import android.support.annotation.NonNull;
-
 import com.creations.app.api.User;
 import com.creations.app.api.UsersRes;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.annotations.NonNull;
+
 /**
  * @author Sérgio Serra on 26/08/2018.
- * Criations
  * sergioserra99@gmail.com
  * <p>
  * <p>

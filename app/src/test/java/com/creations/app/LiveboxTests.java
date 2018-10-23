@@ -2,6 +2,7 @@ package com.creations.app;
 
 import android.os.Looper;
 
+import com.creations.app.repo.UsersRepo;
 import com.creations.convert_jackson.LiveboxJacksonSerializer;
 import com.creations.livebox.Livebox;
 import com.creations.livebox.adapters.AndroidAdapter;
@@ -40,7 +41,7 @@ public class LiveboxTests {
     @Before
     public void setup() {
         mockIgDiskCache();
-        Livebox.init(
+        Livebox.Companion.init(
                 new Config()
                         .disableLog()
                         .setSchedulerProvider(new AndroidAdapter.SchedulerProvider() {
@@ -52,7 +53,7 @@ public class LiveboxTests {
                                 return Schedulers.io();
                             }
                         })
-                        .addSerializer(LiveboxJacksonSerializer.create())
+                        .addSerializer(LiveboxJacksonSerializer.Companion.create())
                         .lruCacheConfig(new DiskLruDataSource.Config(RES_FILE, 1024 * 1024 * 10))
                         .journalDir(RES_FILE)
         );

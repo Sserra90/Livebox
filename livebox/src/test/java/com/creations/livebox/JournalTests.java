@@ -1,9 +1,10 @@
 package com.creations.livebox;
 
-import com.creations.livebox_common.util.Logger;
 import com.creations.livebox.util.Optional;
 import com.creations.livebox.validator.Journal;
+import com.creations.livebox_common.util.Logger;
 
+import org.junit.After;
 import org.junit.Test;
 
 import java.io.File;
@@ -19,6 +20,8 @@ import static junit.framework.Assert.assertTrue;
 
 public class JournalTests {
 
+    private final static File RES_FILE = new File("src/test/resources");
+
     public JournalTests() {
         Logger.disable();
     }
@@ -27,15 +30,14 @@ public class JournalTests {
     public void writeAndReadToJournal() {
 
         final Executor executor = Executors.newSingleThreadExecutor();
-        final File f = new File("src/test/resources");
-        Journal journal = Journal.create(f, executor);
+        Journal journal = Journal.create(RES_FILE, executor);
         journal.save("key1", 10);
         journal.save("key2", 20);
         journal.save("key3", 30);
         journal.save("key4", 40);
         journal.save("key3", 60);
 
-        journal = Journal.create(f, executor);
+        journal = Journal.create(RES_FILE, executor);
         Optional<Long> value = journal.read("key3");
 
         assertTrue(value.isPresent());
@@ -46,7 +48,7 @@ public class JournalTests {
     public void multiThreadAccess() throws InterruptedException {
 
         final String key = "key";
-        final Journal journal = Journal.create(new File("src/test/resources"));
+        final Journal journal = Journal.create(RES_FILE);
         final AtomicReference<Optional<Long>> result = new AtomicReference<>();
 
         final List<Thread> threads = new ArrayList<>();
@@ -92,6 +94,18 @@ public class JournalTests {
             System.out.println(Thread.currentThread().getName() + " save");
             journal.save(key, value);
             System.out.println(Thread.currentThread().getName() + " save finish");
+        }
+    }
+
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @After
+    public void tearDown() {
+        if (RES_FILE.exists()) {
+            File[] files = RES_FILE.listFiles((dir, name) -> name.startsWith("journal"));
+            for (File file : files) {
+                file.delete();
+            }
         }
     }
 

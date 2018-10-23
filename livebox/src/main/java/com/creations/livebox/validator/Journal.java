@@ -1,8 +1,7 @@
 package com.creations.livebox.validator;
 
-import com.creations.livebox_common.util.Logger;
 import com.creations.livebox.util.Optional;
-import com.creations.livebox.util.io.Utils;
+import com.creations.livebox_common.util.Logger;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -16,6 +15,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import static com.creations.livebox.util.io.UtilsKt.closeQuietly;
 
 
 public class Journal {
@@ -70,7 +71,7 @@ public class Journal {
                 mWriter = new BufferedWriter(new FileWriter(mOutputFile));
             } catch (IOException e) {
                 e.printStackTrace();
-                Utils.closeQuietly(mWriter);
+                closeQuietly(mWriter);
                 mWriter = null;
             }
         }
@@ -78,7 +79,6 @@ public class Journal {
         private String buildLine(Map.Entry<String, Long> entry) {
             return entry.getKey() + ":" + entry.getValue();
         }
-
     }
 
     public static Journal create(File f, Executor executor) {
@@ -89,7 +89,7 @@ public class Journal {
                 }
             }
         }
-        return INSTANCE;//new Journal(f, executor);
+        return INSTANCE;
     }
 
     public static Journal create(File f) {

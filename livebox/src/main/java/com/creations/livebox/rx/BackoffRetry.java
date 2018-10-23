@@ -17,7 +17,7 @@ public class BackoffRetry implements Function<Observable<Throwable>, Observable<
     private static final int MAX_RETRIES = 3;
     private int mMaxRetries;
 
-    public BackoffRetry() {
+    BackoffRetry() {
         mMaxRetries = MAX_RETRIES;
     }
 
