@@ -20,8 +20,8 @@ public class AndroidAdapter<T> implements ObservableAdapter<T, Observable<T>> {
     private Scheduler observerScheduler;
 
     public AndroidAdapter() {
-        subscribeScheduler = schedulerProvider == null ? AndroidSchedulers.mainThread() : schedulerProvider.subscribe();
-        observerScheduler = schedulerProvider == null ? Schedulers.io() : schedulerProvider.observer();
+        subscribeScheduler = schedulerProvider == null ? Schedulers.io() : schedulerProvider.subscribe();
+        observerScheduler = schedulerProvider == null ? AndroidSchedulers.mainThread() : schedulerProvider.observer();
     }
 
     public static void setSchedulerProvider(SchedulerProvider schedulerProvider) {
