@@ -1,10 +1,9 @@
 package com.creations.livebox;
 
-import com.creations.livebox.config.Config;
 import com.creations.livebox.datasources.fetcher.Fetcher;
 import com.creations.livebox.datasources.fetcher.FileFetcher;
-import com.creations.livebox_common.util.Logger;
 import com.creations.livebox_common.util.Bag;
+import com.creations.livebox_common.util.Logger;
 import com.creations.serializer_gson.LiveboxGsonSerializer;
 import com.google.gson.reflect.TypeToken;
 
@@ -16,9 +15,10 @@ import java.lang.reflect.Type;
 
 import io.reactivex.observers.TestObserver;
 
+import static com.creations.livebox.LiveboxTest.testConfig;
+
 /**
  * @author Sérgio Serra on 07/09/2018.
- * Criations
  * sergioserra99@gmail.com
  */
 public class FileFetcherTests {
@@ -34,15 +34,15 @@ public class FileFetcherTests {
 
     @Test
     public void testFileFetcher() throws FileNotFoundException {
-        Livebox.init(new Config());
+        Livebox.init(testConfig);
 
         final Fetcher<Bag<String>> bagFetcher =
-                FileFetcher.create("src/test/resources/bag.json", TYPE, LiveboxGsonSerializer.create());
+                FileFetcher.create("src/test/resources/bag.json", TYPE, LiveboxGsonSerializer.Companion.create());
 
-        final LiveboxBuilder<Bag<String>, Bag<String>> builder = new LiveboxBuilder<>();
+        final Box<Bag<String>, Bag<String>> builder = new Box<>(TYPE);
         Livebox<Bag<String>, Bag<String>> bagBox = builder
                 .withKey(TEST_KEY)
-                .fetch(bagFetcher, TYPE)
+                .fetch(bagFetcher)
                 .ignoreCache(true)
                 .build();
 

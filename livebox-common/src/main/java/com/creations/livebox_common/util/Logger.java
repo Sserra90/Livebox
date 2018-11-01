@@ -186,7 +186,7 @@ public class Logger {
         }
 
         // Log with system out
-        System.out.println(msg);
+        System.out.println(String.format(msg, args));
     }
 
     /**
