@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit.*
 class AgeValidator<R> private constructor(
         private val mJournal: Journal?,
         // Time to live before expiring the resource
-        val ttl: Long
+        private val ttl: Long
 ) : Validator<R> {
 
     override fun validate(key: String, item: R): Boolean {
