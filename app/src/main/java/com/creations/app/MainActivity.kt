@@ -45,21 +45,12 @@ class MainActivity : AppCompatActivity() {
 
         val service = Api.getInstance().githubService
 
-        //Livebox.init(config(this))
         Livebox.init(config(this))
-
-        // 2 minutes TTL(time to live)
-        val ageValidator = 2.minutes<UsersRes>()
-        //minutes<UsersRes>(2)
-
-        val data = ArrayList<String>()
-        data.add("1")
-
         //val fileFetcher = fileFetcher<UsersRes>(this,"user_res.json")
 
         box = box<List<String>, List<Int>>()
                 .withKey("some_key")
-                .fetch { Observable.just(data) }
+                .fetch { Observable.just(listOf("1")) }
                 .addSource<List<String>>(Sources.DISK_LRU, 2.minutes())
                 .addConverter<List<Int>> { listOf() }
                 .build()

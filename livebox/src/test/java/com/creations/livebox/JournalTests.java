@@ -29,19 +29,76 @@ public class JournalTests {
     @Test
     public void writeAndReadToJournal() {
 
-        final Executor executor = Executors.newSingleThreadExecutor();
-        Journal journal = Journal.create(RES_FILE, executor);
+        Journal journal = Journal.create(RES_FILE);
         journal.save("key1", 10);
         journal.save("key2", 20);
         journal.save("key3", 30);
         journal.save("key4", 40);
         journal.save("key3", 60);
 
-        journal = Journal.create(RES_FILE, executor);
-        Optional<Long> value = journal.read("key3");
+        assertEquals(10L, (long) journal.read("key1").get());
+        assertEquals(60L, (long) journal.read("key3").get());
+    }
 
-        assertTrue(value.isPresent());
-        assertEquals(60L, (long) value.get());
+    @Test
+    public void shouldEliminateDuplicates() {
+
+        Journal journal = Journal.create(RES_FILE);
+        journal.save("key1", 10);
+        journal.save("key2", 20);
+        journal.save("key2", 25);
+        journal.save("key3", 30);
+        journal.save("key4", 40);
+        journal.save("key3", 60);
+
+        // Recreate
+        journal = Journal.create(RES_FILE);
+
+        assertEquals(4, journal.size());
+        assertEquals(25L, (long) journal.read("key2").get());
+        assertEquals(60L, (long) journal.read("key3").get());
+    }
+
+    @Test
+    public void writeAndReadToJournalWithLimit() {
+
+        final int limit = 300;
+        Journal journal = Journal.create(RES_FILE, limit);
+
+        // Write to file
+        for (int i = 0; i <= limit + 100; i++) {
+            journal.save("key" + i, i);
+        }
+
+        // Recreate
+        journal = Journal.create(RES_FILE, limit);
+
+        assertEquals(journal.size(), limit);
+        assertTrue(journal.read("key0").isAbsent());
+        assertTrue(journal.read("key101").isPresent());
+        assertTrue(journal.read("key400").isPresent());
+    }
+
+    @Test
+    public void noDuplicates() {
+
+        final int limit = 300;
+        Journal journal = Journal.create(RES_FILE, limit);
+
+        // Write to file
+        for (int i = 1, j = 0; i < limit; i++) {
+            journal.save("key" + j, i);
+            if (i % 2 == 0) {
+                j++;
+            }
+        }
+
+        // Recreate
+        journal = Journal.create(RES_FILE, limit);
+
+        assertEquals(journal.size(), limit / 2);
+        assertEquals((long) journal.read("key0").get(), 2L);
+        assertEquals((long) journal.read("key149").get(), 299L);
     }
 
     @Test
@@ -96,7 +153,6 @@ public class JournalTests {
             System.out.println(Thread.currentThread().getName() + " save finish");
         }
     }
-
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @After

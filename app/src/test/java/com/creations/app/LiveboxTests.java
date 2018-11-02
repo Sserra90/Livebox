@@ -7,7 +7,10 @@ import com.creations.convert_jackson.LiveboxJacksonSerializer;
 import com.creations.livebox.Livebox;
 import com.creations.livebox.adapters.AndroidAdapter;
 import com.creations.livebox.config.Config;
+import com.creations.livebox.datasources.disk.DiskLruConfig;
 import com.creations.livebox.datasources.disk.DiskLruDataSource;
+import com.creations.livebox.datasources.disk.DiskPersistentConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.After;
 import org.junit.Before;
@@ -41,21 +44,14 @@ public class LiveboxTests {
     @Before
     public void setup() {
         mockIgDiskCache();
-        Livebox.Companion.init(
-                new Config()
-                        .disableLog()
-                        .setSchedulerProvider(new AndroidAdapter.SchedulerProvider() {
-                            public Scheduler subscribe() {
-                                return Schedulers.io();
-                            }
-
-                            public Scheduler observer() {
-                                return Schedulers.io();
-                            }
-                        })
-                        .addSerializer(LiveboxJacksonSerializer.Companion.create())
-                        .lruCacheConfig(new DiskLruDataSource.Config(RES_FILE, 1024 * 1024 * 10))
-                        .journalDir(RES_FILE)
+        Livebox.init(
+                new Config(
+                        new DiskLruConfig(RES_FILE, 1024 * 1024 * 10),
+                        new DiskPersistentConfig(RES_FILE),
+                        LiveboxJacksonSerializer.create(new ObjectMapper()),
+                        RES_FILE,
+                        true
+                )
         );
     }
 

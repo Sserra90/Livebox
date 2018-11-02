@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit.*
  */
 class AgeValidator<R> private constructor(
         private val mJournal: Journal?,
-        // Time to live before expiring the resources
-        private val mTtl: Long
+        // Time to live before expiring the resource
+        val ttl: Long
 ) : Validator<R> {
 
     override fun validate(key: String, item: R): Boolean {
@@ -19,7 +19,7 @@ class AgeValidator<R> private constructor(
 
         val lastTimestampOpt = mJournal.read(key)
         // By default if no timestamp is available resource is valid
-        return lastTimestampOpt.isAbsent || lastTimestampOpt.get() + mTtl >= System.currentTimeMillis()
+        return lastTimestampOpt.isAbsent || lastTimestampOpt.get() + ttl >= System.currentTimeMillis()
     }
 
     companion object {
