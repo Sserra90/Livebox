@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
         usersVm.usersLiveData.observe(this, androidx.lifecycle.Observer {
             Log.d(TAG, "Users: $it")
         })
-        usersVm.getUsers()
+        //usersVm.getUsers()
     }
 
     @SuppressLint("CheckResult")

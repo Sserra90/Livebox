@@ -10,7 +10,7 @@ class UsersRepo {
 
     val users: Observable<List<Int>>
         get() = box<List<String>, List<Int>>()
-                .withKey("some_key")
+                .withKey("users")
                 .fetch { Observable.just(listOf("1")).delay(5, TimeUnit.SECONDS) }
                 .addSource(Sources.DISK_LRU) { _, _ -> true }
                 .ignoreCache(true)
