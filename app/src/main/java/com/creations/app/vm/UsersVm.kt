@@ -2,6 +2,7 @@ package com.creations.app.vm
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import com.creations.app.entities.Users
 import com.creations.app.repo.UsersRepo
 import com.fixeads.adapter_autodispose.AutoDisposeViewModel
 import com.fixeads.adapter_autodispose.autoDispose
@@ -12,7 +13,7 @@ class UsersVm(private val usersRepo: UsersRepo) : AutoDisposeViewModel() {
         const val TAG = "UsersVm"
     }
 
-    val usersLiveData: MutableLiveData<List<Int>> = MutableLiveData()
+    val usersLiveData: MutableLiveData<Users> = MutableLiveData()
 
     fun getUsers() {
         usersRepo
