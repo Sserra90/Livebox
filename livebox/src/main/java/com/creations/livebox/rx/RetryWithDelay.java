@@ -10,7 +10,6 @@ import io.reactivex.functions.Function;
 
 /**
  * @author Sérgio Serra on 25/08/2018.
- * Criations
  * sergioserra99@gmail.com
  * <p>
  * Taken from # https://stackoverflow.com/questions/22066481/rxjava-can-i-use-retry-but-with-delay
@@ -27,7 +26,7 @@ public class RetryWithDelay implements Function<Observable<Throwable>, Observabl
         this(3, TimeUnit.SECONDS.toMillis(1));
     }
 
-    RetryWithDelay(final int maxRetries, final long retryDelayMillis) {
+    private RetryWithDelay(final int maxRetries, final long retryDelayMillis) {
         this.maxRetries = maxRetries;
         this.retryDelayMillis = retryDelayMillis;
         this.retryCount = 0;

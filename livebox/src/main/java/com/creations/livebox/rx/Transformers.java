@@ -1,6 +1,6 @@
 package com.creations.livebox.rx;
 
-import com.creations.livebox.LiveboxBuilder.RetryStrategy;
+import com.creations.livebox.Box.RetryStrategy;
 import com.creations.livebox_common.util.Logger;
 
 import io.reactivex.ObservableTransformer;

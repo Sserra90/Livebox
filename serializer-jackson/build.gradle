@@ -1,38 +1,18 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 apply plugin: 'com.github.dcendents.android-maven'
+apply from: '../common.gradle'
 
 group = 'com.github.Sserra90.livebox'
 
-android {
-    compileSdkVersion 27
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 27
-        versionCode 1
-        versionName "0.1-BETA"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
-
-}
-
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-
     implementation project(":livebox-common")
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.7.9.4'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.7.9.4'
 
     testImplementation 'junit:junit:4.12'
+}
+repositories {
+    mavenCentral()
 }

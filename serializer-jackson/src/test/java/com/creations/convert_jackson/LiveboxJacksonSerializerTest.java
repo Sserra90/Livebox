@@ -1,6 +1,5 @@
 package com.creations.convert_jackson;
 
-import com.creations.convert_jackson.util.Util;
 import com.creations.livebox_common.serializers.Serializer;
 import com.creations.livebox_common.util.Bag;
 import com.creations.livebox_common.util.Logger;
@@ -21,6 +20,8 @@ import java.util.List;
 
 import okio.BufferedSource;
 import okio.Okio;
+
+import static com.creations.convert_jackson.util.UtilKt.fromRef;
 
 /**
  * @author Sérgio Serra on 10/09/2018.
@@ -89,7 +90,7 @@ public class LiveboxJacksonSerializerTest {
     public void serializeDeserializeJavaType() {
         final Bag<String> aBag = new Bag<>("1", new ArrayList<>());
         final Serializer serializer = LiveboxJacksonSerializer.create(new ObjectMapper());
-        final Type type = Util.fromRef(new TypeReference<Bag<String>>() {
+        final Type type = fromRef(new TypeReference<Bag<String>>() {
         });
         final BufferedSource source = serializer.serialize(aBag, type);
         final Bag<String> result = serializer.deserialize(source, type);

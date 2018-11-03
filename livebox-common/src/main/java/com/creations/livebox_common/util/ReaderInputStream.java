@@ -26,7 +26,7 @@ import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
 
-import static com.creations.livebox_common.util.OkioUtils.EOF;
+import static com.creations.livebox_common.util.OkioUtilsKt.EOF;
 
 /**
  *
