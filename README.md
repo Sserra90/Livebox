@@ -30,7 +30,6 @@ val usersBox = box<UsersRes, Users>()
                 .addConverter<UsersRes> { Users.fromUsersRes(it) }
                 .retryOnFailure()
                 .build()
-                .asAndroidObservable()
                    
 // Using scoped feature, this uses Uber's autodispose                
 usersBox.scoped(AndroidLifecycleScopeProvider.from(this))
