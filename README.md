@@ -19,19 +19,18 @@ Reactive, support for Observable and LiveData.
 
 # How to use it
 
-```java
-// Create validators
-Validator<UsersRes> persistentDiskValidator = (key, item) -> Objects.nonNull(item) && !item.getItems().isEmpty();
+```kotlin
 
 // Builds an instance of Livebox using LiveboxBuilder class.
-Livebox<UsersRes, Users> usersBox = new LiveboxBuilder<UsersRes, Users>()
-                    .withKey("get_users")
-                    .fetch(api::getUserList, UsersRes.class)
-                    .addSource(Sources.MEMORY_LRU, AgeValidator.minutes(2))
-                    .addSource(Sources.DISK_PERSISTENT, persistentDiskValidator)
-                    .addConverter(UsersRes.class, usersRes -> Optional.of(Users.fromUsersRes(usersRes)))
-                    .retryOnFailure()
-                    .build();
+val usersBox = box<UsersRes, Users>()
+                .withKey("users")
+                .fetch { api.userList }
+                .addSource<UsersRes>(Sources.DISK_LRU, 1.minutes())
+                .addSource(UsersRoomDataSource()) { _, users -> users.items.isNotEmpty() }
+                .addConverter<UsersRes> { Users.fromUsersRes(it) }
+                .retryOnFailure()
+                .build()
+                .asAndroidObservable()
                    
 // Using scoped feature, this uses Uber's autodispose                
 usersBox.scoped(AndroidLifecycleScopeProvider.from(this))
