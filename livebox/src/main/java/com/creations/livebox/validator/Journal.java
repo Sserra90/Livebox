@@ -59,7 +59,7 @@ public class Journal {
                     mWriter.write(LINE_BREAK);
                 }
                 mWriter.flush();
-                Logger.d(TAG,"Wrote values: " + mValues);
+                Logger.d(TAG, "Wrote values: " + mValues);
             } catch (IOException e) {
                 e.printStackTrace();
 
@@ -89,7 +89,7 @@ public class Journal {
                 mWriter.write(LINE_BREAK);
                 mWriter.flush();
 
-                Logger.d(TAG,"Wrote values: " + mEntry);
+                Logger.d(TAG, "Wrote values: " + mEntry);
             } catch (IOException e) {
                 e.printStackTrace();
                 // no op
@@ -129,6 +129,13 @@ public class Journal {
 
     private Writer createWriter(final boolean append) {
         try {
+
+            if (!mOutputFile.exists()) {
+                if (!mOutputFile.mkdir()) {
+                    return null;
+                }
+            }
+
             return new BufferedWriter(new FileWriter(mOutputFile, append));
         } catch (IOException e) {
             e.printStackTrace();
@@ -165,7 +172,7 @@ public class Journal {
                 mExecutor.execute(new JournalWriterRun(mTimestamps, createWriter(false)));
             }
 
-            Logger.d(TAG,"Rebuilt from disk values: " + mTimestamps);
+            Logger.d(TAG, "Rebuilt from disk values: " + mTimestamps);
         } catch (Exception e) {
             //
         }

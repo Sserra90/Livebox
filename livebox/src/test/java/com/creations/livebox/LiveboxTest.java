@@ -479,7 +479,7 @@ public class LiveboxTest {
                         new DiskLruConfig(null, 10 * 1024 * 1024),
                         new DiskPersistentConfig(null),
                         LiveboxGsonSerializer.create(),
-                        null,
+                        RES_FILE,
                         false
                 )
         );
