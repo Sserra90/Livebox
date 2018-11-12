@@ -196,9 +196,7 @@ class Livebox<I, O> internal constructor(
                     // saves to local data sources.
                     if (payload.isAbsent) {
                         Logger.d(TAG, "Local data is invalid, hit remote data source and save")
-                        return@flatMap Observable
-                                .fromCallable(this::readFromLocalSources)
-                                .flatMap { fetch(true) }
+                        return@flatMap fetch(true)
                     }
 
                     // At this point we know we have valid local data,

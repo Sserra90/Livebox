@@ -2,6 +2,7 @@ package com.creations.livebox;
 
 import com.creations.livebox.config.Config;
 import com.creations.livebox.converters.Converter;
+import com.creations.livebox.datasources.LocalDataSource;
 import com.creations.livebox.datasources.disk.DiskLruConfig;
 import com.creations.livebox.datasources.disk.DiskPersistentConfig;
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources;
@@ -35,6 +36,8 @@ import static com.creations.livebox.validator.AgeValidator.minutes;
 import static com.creations.serializer_gson.UtilsKt.fromType;
 import static java.util.Collections.singletonList;
 import static junit.framework.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -143,6 +146,36 @@ public class LiveboxTest {
 
         // Verify fetcher was called once
         fetcherCalled(bagFetcher, 1);
+    }
+
+    @Test
+    public void testFetchWithSourceReadOnce() {
+        Livebox.init(testConfig);
+
+        // Setup mock fetcher
+        final Bag<String> bag = new Bag<>("1", new ArrayList<>());
+        final Fetcher<Bag<String>> bagFetcher = mockFetcher(bag);
+
+        @SuppressWarnings("unchecked") final LocalDataSource<Bag<String>, Bag<String>> source = mock(LocalDataSource.class);
+
+        final Box<Bag<String>, Bag<String>> builder = new Box<>(TYPE);
+        Livebox<Bag<String>, Bag<String>> bagBox = builder
+                .withKey(TEST_KEY)
+                .fetch(bagFetcher)
+                .addSource(source, (Validator<Bag<String>>) (key, item) -> true)
+                .ignoreCache(false)
+                .build();
+
+        final TestObserver<Bag<String>> bagTestObserver = new TestObserver<>();
+        bagBox.asObservable().subscribe(bagTestObserver);
+
+        // Assert test observer
+        assertTestObserver(bagTestObserver, bag);
+
+        // Verify fetcher was called once
+        fetcherCalled(bagFetcher, 1);
+
+        verify(source, times(1)).read(anyString());
     }
 
     /**

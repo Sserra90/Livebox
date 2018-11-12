@@ -12,8 +12,7 @@ import java.io.IOException
 import java.lang.reflect.Type
 
 /**
- * @author Sérgio Serra on 25/08/2018.
- * Criations
+ * @author Sérgio Serra
  * sergioserra99@gmail.com
  */
 class LiveboxJacksonSerializer private constructor(private val mObjectMapper: ObjectMapper) : Serializer {
