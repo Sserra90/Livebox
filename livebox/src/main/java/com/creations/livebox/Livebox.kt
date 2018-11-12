@@ -261,11 +261,11 @@ class Livebox<I, O> internal constructor(
             mInit = true
             config = liveboxConfig
 
-            Logger.d(TAG, "Init with config: $config")
-
             if (config.isLoggingDisabled) {
                 Logger.disable()
             }
+
+            Logger.d(TAG, "Init with config: $config")
 
             if (isNull(config.serializer)) {
                 throw IllegalArgumentException("Serializer cannot be null")
