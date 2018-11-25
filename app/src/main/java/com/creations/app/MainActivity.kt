@@ -14,9 +14,15 @@ import com.creations.app.room.Db
 import com.creations.app.vm.UsersVm
 import com.creations.app.vm.VmFactory
 import com.creations.livebox.Livebox
+import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources
+import com.creations.livebox.validator.minutes
+import com.creations.runtime.state.Status.*
 import com.fixeads.adapter_livedata.LiveDataAdapter
+import com.fixeads.adapter_livedata.StateAdapter
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.sserra.livebox_jackson.box
 import com.sserra.livebox_jackson.config
+import io.reactivex.Observable
 import kotlinx.android.synthetic.main.content_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -38,12 +44,13 @@ class MainActivity : AppCompatActivity() {
 
         //val fileFetcher = fileFetcher<UsersRes>(this,"user_res.json")
 
-        /*box = box<List<String>, List<Int>>()
+        box = box<List<String>, List<Int>>()
                 .withKey("some_key")
                 .fetch { Observable.just(listOf("1")) }
                 .addSource<List<String>>(Sources.DISK_LRU, 2.minutes())
-                .addConverter<List<Int>> { listOf() }
-                .build()*/
+                .addConverter<List<Int>> { listOf(1) }
+                .retryOnFailure()
+                .build()
 
         usersVm = ViewModelProviders.of(this, VmFactory())[UsersVm::class.java]
         usersVm.usersLiveData.observe(this, androidx.lifecycle.Observer {
@@ -63,7 +70,17 @@ class MainActivity : AppCompatActivity() {
                         { it.printStackTrace() }
                 )*/
 
-        usersVm.getUsers()
+        box.`as`(StateAdapter()).subscribe({
+            when (it.status) {
+                Error -> Log.d(TAG, "Error state: $it")
+                Loading -> Log.d(TAG, "Loading state: $it")
+                Success -> Log.d(TAG, "Success state: $it")
+            }
+        }, {
+            Log.d(TAG, "Error: $it")
+        })
+
+        //usersVm.getUsers()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

@@ -5,11 +5,8 @@ apply plugin: 'kotlin-kapt'
 
 configurations.all {
     resolutionStrategy {
-        eachDependency { DependencyResolveDetails details ->
-            if (details.requested.group == 'android.arch.lifecycle') {
-                details.useVersion "1.1.1"
-            }
-        }
+        force "androidx.core:core:1.0.1"
+        force "androidx.vectordrawable:vectordrawable:1.0.1"
     }
 }
 
@@ -38,7 +35,7 @@ android {
 }
 
 ext {
-    androidx_app_compat = "1.0.0"
+    androidx_app_compat = "1.0.2"
     androidx_constraint_layout = "2.0.0-alpha2"
     androidx_material = "1.0.0"
     androidx_lifecycle = "2.0.0"
@@ -50,6 +47,7 @@ ext {
     autoDispose = "1.0.0-RC2"
     powerMock = "1.7.4"
     livebox = "498f4f5aac"
+    scimitar = "4a720ed6e4"
 }
 
 dependencies {
@@ -61,6 +59,8 @@ dependencies {
     //implementation project(":livebox-gson")
     implementation project(":adapter-livedata")
     implementation project(":adapter-autodispose")
+
+    implementation "com.github.Sserra90.scimitar:scimitar-runtime:$scimitar"
 
     //implementation "com.github.Sserra90.livebox:livebox:$livebox"
     //implementation "com.github.Sserra90.livebox:serializer-gson:$livebox"

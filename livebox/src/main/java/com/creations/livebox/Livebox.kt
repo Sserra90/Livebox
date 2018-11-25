@@ -59,7 +59,7 @@ class Livebox<I, O> internal constructor(
     private val withShare = ObservableTransformer<O, O> { upstream ->
         Logger.d(TAG, "Compose with share")
         val observable = upstream
-                .doOnComplete {
+                .doFinally {
                     Logger.d(TAG, "Remove from inFlightRequests with key %s", mKey)
                     inFlightRequests.remove(mKey)
                 }
@@ -243,6 +243,9 @@ class Livebox<I, O> internal constructor(
         // Keeps a record of in-flight requests.
         private val inFlightRequests = ConcurrentHashMap<BoxKey, Observable<*>>()
 
+        lateinit var config: Config
+        private var mInit = false
+
         // Journal that keeps a log of requests timestamps
         var journal: Journal? = null
             get() {
@@ -251,10 +254,6 @@ class Livebox<I, O> internal constructor(
                 }
                 return field
             }
-
-        lateinit var config: Config
-
-        private var mInit = false
 
         @JvmStatic
         fun init(liveboxConfig: Config) {
