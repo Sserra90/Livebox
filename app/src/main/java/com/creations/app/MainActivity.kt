@@ -70,7 +70,9 @@ class MainActivity : AppCompatActivity() {
                         { it.printStackTrace() }
                 )*/
 
-        box.`as`(StateAdapter()).subscribe({
+        val obs = box.`as`(StateAdapter())
+
+        obs.subscribe({
             when (it.status) {
                 Error -> Log.d(TAG, "Error state: $it")
                 Loading -> Log.d(TAG, "Loading state: $it")
@@ -78,6 +80,16 @@ class MainActivity : AppCompatActivity() {
             }
         }, {
             Log.d(TAG, "Error: $it")
+        })
+
+        obs.subscribe({
+            when (it.status) {
+                Error -> Log.d(TAG, "Error2 state: $it")
+                Loading -> Log.d(TAG, "Loading2 state: $it")
+                Success -> Log.d(TAG, "Success2 state: $it")
+            }
+        }, {
+            Log.d(TAG, "Error2: $it")
         })
 
         //usersVm.getUsers()
