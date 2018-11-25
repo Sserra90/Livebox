@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -130,8 +129,8 @@ public class Journal {
     private Writer createWriter(final boolean append) {
         try {
 
-            if (!mOutputFile.exists()) {
-                if (!mOutputFile.mkdir()) {
+            if (!mOutputFileDir.exists()) {
+                if (!mOutputFileDir.mkdirs()) {
                     return null;
                 }
             }
