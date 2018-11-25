@@ -57,8 +57,7 @@ dependencies {
 
     implementation project(":livebox-jackson")
     //implementation project(":livebox-gson")
-    implementation project(":adapter-livedata")
-    implementation project(":adapter-autodispose")
+    implementation project(':adapters')
 
     implementation "com.github.Sserra90.scimitar:scimitar-runtime:$scimitar"
 
@@ -71,6 +70,7 @@ dependencies {
     implementation "com.google.android.material:material:$androidx_material"
     implementation "androidx.lifecycle:lifecycle-extensions:$androidx_lifecycle"
 
+    // Auto dipose
     implementation "com.uber.autodispose:autodispose-android-archcomponents:$autoDispose"
 
     // Room

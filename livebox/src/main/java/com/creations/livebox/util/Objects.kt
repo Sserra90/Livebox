@@ -8,7 +8,7 @@ package com.creations.livebox.util
  * @param obj a reference to be checked against `null`
  * @return `true` if the provided reference is `null` otherwise
  * `false`
- * @apiNote This method exists to be used as a
+ * @apiNote This method exists to be used adapt a
  * [java.util.function.Predicate], `filter(Objects::isNull)`
  * @see java.util.function.Predicate
  *
@@ -23,7 +23,7 @@ fun isNull(obj: Any?): Boolean = obj == null
  * @param obj a reference to be checked against `null`
  * @return `true` if the provided reference is non-`null`
  * otherwise `false`
- * @apiNote This method exists to be used as a
+ * @apiNote This method exists to be used adapt a
  * [java.util.function.Predicate], `filter(Objects::nonNull)`
  * @see java.util.function.Predicate
  *

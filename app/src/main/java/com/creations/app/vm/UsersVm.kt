@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.creations.app.entities.Users
 import com.creations.app.repo.UsersRepo
-import com.fixeads.adapter_autodispose.AutoDisposeViewModel
-import com.fixeads.adapter_autodispose.autoDispose
+import com.fixeads.adapter_livedata.AutoDisposeViewModel
+import com.fixeads.adapter_livedata.autoDispose
 
 class UsersVm(private val usersRepo: UsersRepo) : AutoDisposeViewModel() {
 

@@ -166,7 +166,7 @@ class Livebox<I, O> internal constructor(
         }
 
         // If no converter was found, we try casting because T type parameter
-        // could have the same type as O type parameter, in that case no converter is needed.
+        // could have the same type adapt O type parameter, in that case no converter is needed.
         return data as O
     }
 
@@ -227,10 +227,10 @@ class Livebox<I, O> internal constructor(
      * @return an Observable that will emit on [Schedulers.io]
      * and observer in [AndroidSchedulers.mainThread]
      */
-    fun asAndroidObservable(): Observable<O> = `as`(AndroidAdapter())
+    fun asAndroidObservable(): Observable<O> = adapt(AndroidAdapter())
 
     // Uses passed adapter to adapt the result observable.
-    fun <T> `as`(@NonNull adapter: ObservableAdapter<O, T>?): T {
+    fun <T> adapt(@NonNull adapter: ObservableAdapter<O, T>?): T {
         if (adapter == null) {
             throw IllegalArgumentException("Adapter cannot be null")
         }
@@ -283,7 +283,7 @@ class Livebox<I, O> internal constructor(
 
 private data class Payload<T>(val type: Type, val data: T)
 
-// A Key that uses a single string as identifier
+// A Key that uses a single string adapt identifier
 // Key must match the regex [a-z0-9_-]{1,120}.
 data class BoxKey internal constructor(val key: String) {
 

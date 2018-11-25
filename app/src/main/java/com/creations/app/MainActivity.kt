@@ -64,13 +64,14 @@ class MainActivity : AppCompatActivity() {
 
         //usersBox.asLiveData().observe(this, users -> Log.d(TAG, "UsersRes: " + users));
 
-        /*box.`as`(AutoDisposeAdapter.of(AndroidLifecycleScopeProvider.from(this), android = true))
+        /*box.`adapt`(AutoDisposeAdapter.of(AndroidLifecycleScopeProvider.from(this)))
                 .subscribe(
                         { data -> Log.d(TAG, "Data: $data") },
                         { it.printStackTrace() }
-                )*/
+                )
+*/
 
-        val obs = box.`as`(StateAdapter())
+        val obs = box.adapt(StateAdapter())
 
         obs.subscribe({
             when (it.status) {
@@ -104,7 +105,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+        // adapt you specify a parent activity in AndroidManifest.xml.
         val id = item.itemId
         return if (id == R.id.action_settings) {
             true
@@ -117,7 +118,7 @@ class MainActivity : AppCompatActivity() {
 }
 
 fun <I, O> Livebox<I, O>.asLiveData(owner: LifecycleOwner, block: (O) -> Unit = {}) {
-    `as`(LiveDataAdapter()).observe(owner, Observer<O> {
+    adapt(LiveDataAdapter()).observe(owner, Observer<O> {
         it?.let(block)
     })
 }

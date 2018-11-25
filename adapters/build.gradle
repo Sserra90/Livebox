@@ -7,6 +7,7 @@ group = 'com.github.Sserra90.livebox'
 
 ext {
     lifecycle_version = "2.0.0"
+    autoDispose = "1.0.0-RC2"
     scimitar = "4a720ed6e4"
 }
 
@@ -18,6 +19,8 @@ dependencies {
     implementation "com.github.Sserra90.scimitar:scimitar-runtime:$scimitar"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-reactivestreams:$lifecycle_version"
+    implementation "com.uber.autodispose:autodispose:$autoDispose"
+    implementation "com.uber.autodispose:autodispose-lifecycle:$autoDispose"
 }
 repositories {
     mavenCentral()

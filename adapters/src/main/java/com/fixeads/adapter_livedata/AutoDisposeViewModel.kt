@@ -1,4 +1,4 @@
-package com.fixeads.adapter_autodispose
+package com.fixeads.adapter_livedata
 
 import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
