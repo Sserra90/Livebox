@@ -73,25 +73,21 @@ class MainActivity : AppCompatActivity() {
 
         val obs = box.adapt(StateAdapter())
 
-        obs.subscribe({
+        obs.subscribe {
             when (it.status) {
                 Error -> Log.d(TAG, "Error state: $it")
                 Loading -> Log.d(TAG, "Loading state: $it")
                 Success -> Log.d(TAG, "Success state: $it")
             }
-        }, {
-            Log.d(TAG, "Error: $it")
-        })
+        }
 
-        obs.subscribe({
+        /*obs.subscribe {
             when (it.status) {
                 Error -> Log.d(TAG, "Error2 state: $it")
                 Loading -> Log.d(TAG, "Loading2 state: $it")
                 Success -> Log.d(TAG, "Success2 state: $it")
             }
-        }, {
-            Log.d(TAG, "Error2: $it")
-        })
+        }*/
 
         //usersVm.getUsers()
     }

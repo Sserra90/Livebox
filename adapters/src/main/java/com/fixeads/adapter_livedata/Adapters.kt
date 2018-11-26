@@ -13,11 +13,8 @@ import com.uber.autodispose.ObservableSubscribeProxy
 import com.uber.autodispose.lifecycle.LifecycleScopeProvider
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Observable
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
-import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.Subject
-import java.util.concurrent.atomic.AtomicBoolean
+import io.reactivex.Observable.concat
+import io.reactivex.Observable.just
 
 
 /**
@@ -30,22 +27,14 @@ class LiveDataAdapter<T> : ObservableAdapter<T, LiveData<T>> {
 }
 
 class StateAdapter<T> : ObservableAdapter<T, Observable<State<T>>> {
-
-    private val isSubscribed = AtomicBoolean(false)
-
     @SuppressLint("CheckResult")
     override fun adapt(observable: Observable<T>): Observable<State<T>> {
-        val subject: Subject<State<T>> = BehaviorSubject.create<State<T>>().toSerialized()
-        var d: Disposable? = null
-        val obs = subject.doOnSubscribe { _ ->
-            if (isSubscribed.compareAndSet(false, true)) {
-                d = observable
-                        .subscribeOn(Schedulers.io())
-                        .doOnSubscribe { subject.onNext(loading()) }
-                        .subscribe({ subject.onNext(success(it)) }, { subject.onNext(error()) })
-            }
-        }
-        return obs.doOnDispose { d?.dispose() }
+        return concat(
+                just(loading()),
+                observable
+                        .map { success(it) }
+                        .onErrorReturn { error() }
+        )
     }
 }
 

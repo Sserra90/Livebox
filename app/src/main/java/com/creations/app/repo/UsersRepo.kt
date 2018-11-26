@@ -12,6 +12,8 @@ import com.creations.livebox.datasources.LocalDataSource
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources
 import com.creations.livebox.validator.minutes
 import com.creations.livebox_common.util.Logger
+import com.creations.runtime.state.State
+import com.fixeads.adapter_livedata.StateAdapter
 import com.sserra.livebox_jackson.box
 import io.reactivex.Observable
 import java.lang.reflect.Type
@@ -28,6 +30,17 @@ class UsersRepo(private val api: GithubService = Api.getInstance().githubService
                 .retryOnFailure()
                 .build()
                 .asAndroidObservable()
+
+    val usersState: Observable<State<Users>>
+        get() = box<UsersRes, Users>()
+                .withKey("users")
+                .fetch { api.userList }
+                .addSource<UsersRes>(Sources.DISK_LRU, 1.minutes())
+                .addSource(UsersRoomDataSource()) { _, users -> users.items.isNotEmpty() }
+                .addConverter<UsersRes> { Users.fromUsersRes(it) }
+                .retryOnFailure()
+                .build()
+                .adapt(StateAdapter())
 }
 
 class UsersRoomDataSource(private val usersDao: UsersDao = Db.usersDao()) : LocalDataSource<UsersRes, Users> {
