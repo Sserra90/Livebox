@@ -1,6 +1,7 @@
 package com.creations.app.api;
 
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import retrofit2.http.GET;
 
 /**
@@ -8,7 +9,9 @@ import retrofit2.http.GET;
  * Github service definition.
  */
 public interface GithubService {
-
     @GET("/search/users?q=tom")
     Observable<UsersRes> getUserList();
+
+    @GET("/search/users?q=tom")
+    Single<UsersRes> getSingleUserList();
 }

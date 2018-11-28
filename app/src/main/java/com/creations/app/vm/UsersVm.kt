@@ -6,6 +6,7 @@ import com.creations.app.entities.Users
 import com.creations.app.repo.UsersRepo
 import com.creations.runtime.state.State
 import com.fixeads.adapter_livedata.AutoDisposeViewModel
+import com.fixeads.adapter_livedata.android
 import com.fixeads.adapter_livedata.autoDispose
 
 class UsersVm(private val usersRepo: UsersRepo) : AutoDisposeViewModel() {
@@ -18,11 +19,14 @@ class UsersVm(private val usersRepo: UsersRepo) : AutoDisposeViewModel() {
     val usersState: MutableLiveData<State<Users>> = MutableLiveData()
 
     fun getUsers() {
-        /*usersRepo
+        usersRepo
                 .usersState
+                .android()
                 .autoDispose(this)
-                .subscribe { usersState.value = it } */
+                .subscribe { usersState.value = it }
+    }
 
+    /*fun getUsers() {
         usersRepo
                 .users
                 .autoDispose(this)
@@ -31,7 +35,7 @@ class UsersVm(private val usersRepo: UsersRepo) : AutoDisposeViewModel() {
                         {},
                         { Log.d(TAG, "OnComplete") }
                 )
-    }
+    }*/
 
     override fun onCleared() {
         super.onCleared()

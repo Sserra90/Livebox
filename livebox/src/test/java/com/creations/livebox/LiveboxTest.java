@@ -58,7 +58,7 @@ public class LiveboxTest {
     private final static Type TYPE = fromType(new TypeToken<Bag<String>>() {
     });
 
-    final static Config testConfig = new Config(
+    public final static Config testConfig = new Config(
             new DiskLruConfig(RES_FILE, 10 * 1024 * 1024),
             new DiskPersistentConfig(RES_FILE),
             LiveboxGsonSerializer.create(),

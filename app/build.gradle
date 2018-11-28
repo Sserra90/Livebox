@@ -28,6 +28,10 @@ android {
         }
     }
 
+    dataBinding {
+        enabled = true
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -82,7 +86,7 @@ dependencies {
     implementation "io.reactivex.rxjava2:rxjava:$rxjava"
 
     // 3rd Party: Network - Retrofit2
-    implementation ("com.squareup.retrofit2:retrofit:$retrofit")
+    implementation("com.squareup.retrofit2:retrofit:$retrofit")
     implementation "com.squareup.retrofit2:converter-gson:$retrofit"
     implementation "com.squareup.retrofit2:adapter-rxjava:$retrofit"
     implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit"

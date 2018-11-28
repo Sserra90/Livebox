@@ -11,13 +11,15 @@ import com.uber.autodispose.lifecycle.LifecycleScopeProvider
 import com.uber.autodispose.lifecycle.LifecycleScopes
 import io.reactivex.CompletableSource
 import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 
 /**
  * ViewModel that provides a scope to automatically dispose observables.
  * @link https://github.com/uber/AutoDispose/blob/master/sample/src/main/kotlin/com/uber/autodispose/recipes/AutoDisposeViewModel.kt
  */
-abstract class AutoDisposeViewModel: ViewModel(), LifecycleScopeProvider<AutoDisposeViewModel.ViewModelEvent> {
+abstract class AutoDisposeViewModel : ViewModel(), LifecycleScopeProvider<AutoDisposeViewModel.ViewModelEvent> {
 
     // Subject backing the auto disposing of subscriptions.
     private val lifecycleEvents = BehaviorSubject.createDefault(ViewModelEvent.CREATED)
@@ -80,3 +82,7 @@ abstract class AutoDisposeViewModel: ViewModel(), LifecycleScopeProvider<AutoDis
 @SuppressLint("CheckResult")
 fun <T> Observable<T>.autoDispose(scope: ScopeProvider): ObservableSubscribeProxy<T> =
         `as`(AutoDispose.autoDisposable(scope))
+
+fun <T> Observable<T>.android(): Observable<T> =
+        subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+

@@ -7,9 +7,11 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import com.creations.app.databinding.ActivityMainBinding
 import com.creations.app.room.Db
 import com.creations.app.vm.UsersVm
 import com.creations.app.vm.VmFactory
@@ -32,31 +34,32 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-
-        val fab = findViewById<FloatingActionButton>(R.id.fab)
-        fab.setOnClickListener { getUsers() }
 
         Db.appContext = applicationContext
         Livebox.init(config(this))
 
+        val db = DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
+        setSupportActionBar(db.toolbar)
+        db.fab.setOnClickListener { getUsers() }
+
         //val fileFetcher = fileFetcher<UsersRes>(this,"user_res.json")
 
-        box = box<List<String>, List<Int>>()
+        /*box = box<List<String>, List<Int>>()
                 .withKey("some_key")
                 .fetch { Observable.just(listOf("1")) }
                 .addSource<List<String>>(Sources.DISK_LRU, 2.minutes())
                 .addConverter<List<Int>> { listOf(1) }
                 .retryOnFailure()
-                .build()
+                .build()*/
 
         usersVm = ViewModelProviders.of(this, VmFactory())[UsersVm::class.java]
         usersVm.usersLiveData.observe(this, androidx.lifecycle.Observer {
             Log.d(TAG, "Users: $it")
             data.text = it.toString()
         })
+
+        db.setLifecycleOwner(this)
+        db.vm = usersVm
     }
 
     @SuppressLint("CheckResult")
@@ -69,7 +72,6 @@ class MainActivity : AppCompatActivity() {
                         { data -> Log.d(TAG, "Data: $data") },
                         { it.printStackTrace() }
                 )
-*/
 
         val obs = box.adapt(StateAdapter())
 
@@ -79,17 +81,9 @@ class MainActivity : AppCompatActivity() {
                 Loading -> Log.d(TAG, "Loading state: $it")
                 Success -> Log.d(TAG, "Success state: $it")
             }
-        }
-
-        /*obs.subscribe {
-            when (it.status) {
-                Error -> Log.d(TAG, "Error2 state: $it")
-                Loading -> Log.d(TAG, "Loading2 state: $it")
-                Success -> Log.d(TAG, "Success2 state: $it")
-            }
         }*/
 
-        //usersVm.getUsers()
+        usersVm.getUsers()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

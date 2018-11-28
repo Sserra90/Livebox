@@ -1,6 +1,7 @@
 package com.creations.livebox.datasources.fetcher
 
 import io.reactivex.Observable
+import io.reactivex.Single
 
 /**
  * @author Sérgio Serra on 25/08/2018.
