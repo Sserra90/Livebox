@@ -20,7 +20,7 @@ class UsersVm(private val usersRepo: UsersRepo) : AutoDisposeViewModel() {
 
     fun getUsers() {
         usersRepo
-                .usersState
+                .getUsers
                 .android()
                 .autoDispose(this)
                 .subscribe { usersState.value = it }
