@@ -47,7 +47,7 @@ ext {
     autoDispose = "1.0.0-RC2"
     powerMock = "1.7.4"
     livebox = "498f4f5aac"
-    scimitar = "4a720ed6e4"
+    scimitar = "0830f83c3c"
 }
 
 dependencies {

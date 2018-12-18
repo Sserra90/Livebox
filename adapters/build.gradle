@@ -8,7 +8,7 @@ group = 'com.github.Sserra90.livebox'
 ext {
     lifecycle_version = "2.0.0"
     autoDispose = "1.0.0-RC2"
-    scimitar = "4a720ed6e4"
+    scimitar = "0830f83c3c"
 }
 
 dependencies {
