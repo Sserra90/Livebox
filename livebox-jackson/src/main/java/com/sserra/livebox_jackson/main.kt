@@ -5,7 +5,9 @@ import com.creations.convert_jackson.LiveboxJacksonSerializer
 import com.creations.convert_jackson.util.fromRef
 import com.creations.livebox.Box
 import com.creations.livebox.config.Config
+import com.creations.livebox.datasources.fetcher.Fetcher
 import com.creations.livebox.datasources.fetcher.FileFetcher
+import io.reactivex.Observable
 import java.io.File
 import java.io.InputStream
 
@@ -24,3 +26,14 @@ inline fun <reified T> fileFetcher(file: File) =
 
 inline fun <reified T> fileFetcher(iss: InputStream) =
         FileFetcher.create<T>(iss, fromRef<T>(), LiveboxJacksonSerializer.create())
+
+fun <T> errorFetcher(throwable: Throwable = RuntimeException()): Fetcher<T> = object : Fetcher<T> {
+    override fun fetch(): Observable<T> = Observable.error(throwable)
+}
+
+inline fun <reified T> Any.assetFetcher(fileName: String): Fetcher<T> =
+        FileFetcher.create(
+                javaClass.classLoader!!.getResourceAsStream("assets/$fileName"),
+                fromRef<T>(),
+                LiveboxJacksonSerializer.create()
+        )

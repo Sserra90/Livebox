@@ -1,5 +1,6 @@
 package com.creations.app.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.List;
  *
  * Representation of GitHub service API response from getUsers endpoint.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UsersRes {
 
     @SerializedName("items")

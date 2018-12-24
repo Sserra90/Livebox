@@ -3,7 +3,6 @@ package com.creations.app.vm
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.creations.app.repo.RepoFactory
-import com.creations.app.repo.UsersRepo
 
 
 /**
@@ -14,7 +13,7 @@ class VmFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (UsersVm::class.java.isAssignableFrom(modelClass)) {
             @Suppress("UNCHECKED_CAST")
-            return UsersVm(RepoFactory.provideRepo()) as T
+            return UsersVm(RepoFactory.provideRepo(test = true)) as T
         }
         throw IllegalArgumentException()
     }

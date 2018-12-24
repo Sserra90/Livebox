@@ -3,9 +3,12 @@ package com.creations.livebox.util.io
 import android.content.Context
 import android.os.Environment
 import android.os.StatFs
+import com.creations.livebox_common.util.bufferedSource
 import java.io.Closeable
 import java.io.File
 import java.io.IOException
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
 /**
  * Helper method to calculate the proper size limit of a cache instance.
@@ -62,4 +65,17 @@ fun closeQuietly(closeable: Closeable?) {
         }
 
     }
+}
+
+/**
+ * Reads file from assets folder as a String.
+ * @param filename the path to the file relative to assets directory
+ * @return file contents as a string
+ */
+inline fun <reified T : Any> bindAsset(filename: String): ReadOnlyProperty<T, String> =
+        ResourcesVar(filename)
+
+class ResourcesVar<T : Any>(private val filename: String) : ReadOnlyProperty<T, String> {
+    override fun getValue(thisRef: T, property: KProperty<*>): String =
+            bufferedSource(javaClass.classLoader!!.getResourceAsStream("assets/$filename")).readUtf8()
 }

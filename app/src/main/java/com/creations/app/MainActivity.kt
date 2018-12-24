@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
@@ -16,15 +15,8 @@ import com.creations.app.room.Db
 import com.creations.app.vm.UsersVm
 import com.creations.app.vm.VmFactory
 import com.creations.livebox.Livebox
-import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources
-import com.creations.livebox.validator.minutes
-import com.creations.runtime.state.Status.*
 import com.fixeads.adapter_livedata.LiveDataAdapter
-import com.fixeads.adapter_livedata.StateAdapter
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.sserra.livebox_jackson.box
 import com.sserra.livebox_jackson.config
-import io.reactivex.Observable
 import kotlinx.android.synthetic.main.content_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -83,7 +75,7 @@ class MainActivity : AppCompatActivity() {
             }
         }*/
 
-        usersVm.getUsers()
+         usersVm.getUsers()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

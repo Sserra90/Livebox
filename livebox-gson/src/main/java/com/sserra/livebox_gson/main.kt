@@ -3,9 +3,11 @@ package com.sserra.livebox_gson
 import android.content.Context
 import com.creations.livebox.Box
 import com.creations.livebox.config.Config
+import com.creations.livebox.datasources.fetcher.Fetcher
 import com.creations.livebox.datasources.fetcher.FileFetcher
 import com.creations.serializer_gson.LiveboxGsonSerializer
 import com.creations.serializer_gson.fromType
+import io.reactivex.Observable
 import java.io.File
 import java.io.InputStream
 
@@ -25,3 +27,16 @@ inline fun <reified T> fileFetcher(file: File) =
 
 inline fun <reified T> fileFetcher(iss: InputStream) =
         FileFetcher.create<T>(iss, fromType<T>(), LiveboxGsonSerializer.create())
+
+
+fun <T> errorFetcher(throwable: Throwable = RuntimeException()): Fetcher<T> =
+        object : Fetcher<T> {
+            override fun fetch(): Observable<T> = Observable.error(throwable)
+        }
+
+inline fun <reified T> Any.assetFetcher(fileName: String): Fetcher<T> =
+        FileFetcher.create(
+                javaClass.classLoader!!.getResourceAsStream("assets/$fileName"),
+                fromType<T>(),
+                LiveboxGsonSerializer.create()
+        )

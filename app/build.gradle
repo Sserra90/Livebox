@@ -36,6 +36,8 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    sourceSets.test.resources.srcDirs += ["src/main"]
 }
 
 ext {
@@ -62,6 +64,8 @@ dependencies {
     implementation project(":livebox-jackson")
     //implementation project(":livebox-gson")
     implementation project(':adapters')
+    implementation project(":annotations")
+    kapt project(":livebox-processor")
 
     implementation "com.github.Sserra90.scimitar:scimitar-runtime:$scimitar"
 

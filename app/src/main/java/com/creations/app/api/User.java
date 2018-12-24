@@ -3,6 +3,7 @@ package com.creations.app.api;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -11,6 +12,7 @@ import com.google.gson.annotations.SerializedName;
  * Criations
  * sergioserra99@gmail.com
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class User implements Parcelable {
 
     public static final Creator<User> CREATOR = new Creator<User>() {

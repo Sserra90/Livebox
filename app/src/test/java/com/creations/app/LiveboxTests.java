@@ -2,16 +2,6 @@ package com.creations.app;
 
 import android.os.Looper;
 
-import com.creations.app.repo.UsersRepo;
-import com.creations.convert_jackson.LiveboxJacksonSerializer;
-import com.creations.livebox.Livebox;
-import com.creations.livebox.adapters.AndroidAdapter;
-import com.creations.livebox.config.Config;
-import com.creations.livebox.datasources.disk.DiskLruConfig;
-import com.creations.livebox.datasources.disk.DiskLruDataSource;
-import com.creations.livebox.datasources.disk.DiskPersistentConfig;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,11 +12,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
-import java.util.List;
-
-import io.reactivex.Scheduler;
-import io.reactivex.observers.TestObserver;
-import io.reactivex.schedulers.Schedulers;
+import java.io.InputStream;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Looper.class)
@@ -43,7 +29,7 @@ public class LiveboxTests {
 
     @Before
     public void setup() {
-        mockIgDiskCache();
+        /*mockIgDiskCache();
         Livebox.init(
                 new Config(
                         new DiskLruConfig(RES_FILE, 1024 * 1024 * 10),
@@ -52,21 +38,29 @@ public class LiveboxTests {
                         RES_FILE,
                         true
                 )
-        );
+        );*/
     }
 
+    /*
     @Test
     public void fetchUsers() {
 
-        final UsersRepo repo = new UsersRepo();
+        final UsersRepo repo = UsersRepo();
         final TestObserver<List<Integer>> observer = new TestObserver<>();
-        repo.getUsers().subscribe(observer);
+        repo.getGetUsers().subscribe(observer);
 
         observer.awaitTerminalEvent();
         observer
                 .assertComplete()
                 .assertNoErrors()
                 .assertValue(List::isEmpty);
+    }*/
+
+    @Test
+    public void fakeTest() {
+
+        InputStream is = getClass().getClassLoader().getResourceAsStream("assets/users/users_success.json");
+        System.out.println("is:" + is);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
