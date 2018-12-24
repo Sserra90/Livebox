@@ -11,18 +11,14 @@ import com.creations.app.room.mapToUsers
 import com.creations.livebox.Box
 import com.creations.livebox.datasources.LocalDataSource
 import com.creations.livebox.datasources.factory.LiveboxDataSourceFactory.Sources
-import com.creations.livebox.datasources.fetcher.Fetcher
-import com.creations.livebox.util.io.bindAsset
 import com.creations.livebox.validator.minutes
 import com.creations.livebox_common.util.Logger
 import com.creations.runtime.state.State
 import com.creations.runtime.state.Status
-import com.creations.runtime.state.Status.*
+import com.creations.runtime.state.Status.Success
 import com.fixeads.adapter_livedata.StateAdapter
 import com.sserra.annotations.Assets
-import com.sserra.livebox_jackson.assetFetcher
 import com.sserra.livebox_jackson.box
-import com.sserra.livebox_jackson.errorFetcher
 import io.reactivex.Observable
 import java.lang.reflect.Type
 
@@ -35,7 +31,7 @@ object RepoFactory {
             if (test) FakeUsersRepo(status) else RemoteUsersRepo()
 }
 
-@Assets(folder = "users")
+@Assets(folder = "users", mapsTo = UsersRes::class)
 interface UsersRepo {
     val getUsers: Observable<State<Users>>
 }
@@ -99,20 +95,20 @@ class UsersRoomDataSource(private val usersDao: UsersDao = Db.usersDao()) : Loca
 
 fun <I, O> Box<I, O>.toStateAdapter(): Observable<State<O>> = build().adapt(StateAdapter())
 
+//fun usersFetchers(status: Status): Fetcher<UsersRes> = UsersAssets().usersFetchersMap[status]!!
 
-fun usersFetchers(status: Status): Fetcher<UsersRes> = UsersAssets().usersFetchersMap[status]!!
-
+/*
 class UsersAssets {
 
     val usersFetchersMap: Map<Status, Fetcher<UsersRes>> by lazy {
         mapOf<Status, Fetcher<UsersRes>>(
                 Success to assetFetcher("users/users_success.json"),
-                NoResults to assetFetcher("users/users_no_results.json"),
+                NoResults to assetFetcher("users/users_noResults.json"),
                 Error to errorFetcher()
         )
     }
 
     val usersErrorResponse: String by bindAsset("users/users_error.json")
-    val usersNoResultsResponse: String by bindAsset("users/users_no_results.json")
+    val usersNoResultsResponse: String by bindAsset("users/users_noResults.json")
     val usersSuccessResponse: String by bindAsset("users/users_success.json")
-}
+}*/

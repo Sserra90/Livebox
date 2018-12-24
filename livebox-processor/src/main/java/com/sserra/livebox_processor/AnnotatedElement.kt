@@ -4,11 +4,22 @@ import com.sserra.annotations.Assets
 import javax.lang.model.element.Element
 import javax.lang.model.element.Name
 import javax.lang.model.element.TypeElement
+import javax.lang.model.type.MirroredTypeException
+import javax.lang.model.type.TypeMirror
 
 data class AssetsElement(override val element: Element) : AnnotatedElement(element) {
 
     val className: String
     val folder: String = element.getAnnotation(Assets::class.java).folder
+    val mapsTo: TypeMirror?
+        get() {
+            try {
+                element.getAnnotation(Assets::class.java).mapsTo
+            } catch (e: MirroredTypeException) {
+                return e.typeMirror
+            }
+            return null
+        }
 
     init {
         element.getAnnotation(Assets::class.java).name.apply {
@@ -18,6 +29,10 @@ data class AssetsElement(override val element: Element) : AnnotatedElement(eleme
                 this
             }
         }
+    }
+
+    override fun toString(): String {
+        return "AssetsElement(element=$element, className='$className', folder='$folder', mapsTo='$mapsTo')"
     }
 }
 
