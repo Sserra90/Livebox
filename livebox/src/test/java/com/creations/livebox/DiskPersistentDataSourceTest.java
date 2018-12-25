@@ -51,7 +51,7 @@ public class DiskPersistentDataSourceTest {
 
         // Exercise
         final DiskPersistentDataSource<Bag<String>, Bag<String>> dataSource
-                = DiskPersistentDataSource.Companion.create(LiveboxGsonSerializer.Companion.create(new Gson()), typeToken.getType());
+                = DiskPersistentDataSource.create(LiveboxGsonSerializer.create(new Gson()), typeToken.getType());
         dataSource.save(key, bag);
         final Bag<String> newBagOpt = dataSource.read(key);
 
@@ -69,13 +69,13 @@ public class DiskPersistentDataSourceTest {
 
         TypeToken<List<Bag<String>>> bagType = new TypeToken<List<Bag<String>>>() {
         };
-        final Serializer serializer = LiveboxGsonSerializer.Companion.create(new Gson());
+        final Serializer serializer = LiveboxGsonSerializer.create(new Gson());
         final List<Bag<String>> bags = serializer.deserialize(source, bagType.getType());
 
         // Exercise
         final String key = "2000";
         final DiskPersistentDataSource<List<Bag<String>>, List<Bag<String>>> dataSource
-                = DiskPersistentDataSource.Companion.create(serializer, bagType.getType());
+                = DiskPersistentDataSource.create(serializer, bagType.getType());
         dataSource.save(key, bags);
         final List<Bag<String>> newBagOpt = dataSource.read(key);
 
