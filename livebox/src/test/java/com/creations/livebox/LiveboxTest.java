@@ -63,6 +63,7 @@ public class LiveboxTest {
             new DiskPersistentConfig(RES_FILE),
             LiveboxGsonSerializer.create(),
             RES_FILE,
+            false,
             true
     );
 
@@ -480,6 +481,7 @@ public class LiveboxTest {
                         new DiskPersistentConfig(null),
                         LiveboxGsonSerializer.create(),
                         RES_FILE,
+                        false,
                         false
                 )
         );
@@ -500,6 +502,37 @@ public class LiveboxTest {
         bagBox.asObservable().subscribe();
         bagBox.asObservable().subscribe(bagTestObserver);
 
+        assertTestObserver(bagTestObserver, bag);
+        fetcherCalled(bagFetcher, 2);
+    }
+
+    @Test
+    public void testDisableCacheConfig() {
+        Livebox.init(new Config(
+                new DiskLruConfig(RES_FILE, 10 * 1024 * 1024),
+                new DiskPersistentConfig(RES_FILE),
+                LiveboxGsonSerializer.create(),
+                RES_FILE,
+                true,
+                true
+        ));
+
+        // Setup mock fetcher
+        final Bag<String> bag = new Bag<>("1", new ArrayList<>());
+        final Fetcher<Bag<String>> bagFetcher = mockFetcher(bag);
+
+        final Box<Bag<String>, Bag<String>> builder = new Box<>(TYPE);
+        Livebox<Bag<String>, Bag<String>> bagBox = builder
+                .withKey(TEST_KEY)
+                .fetch(bagFetcher)
+                .addSource(Sources.DISK_PERSISTENT, (Validator<Bag<String>>) (key, item) -> true)
+                .build();
+
+        final TestObserver<Bag<String>> bagTestObserver = new TestObserver<>();
+        bagBox.asObservable().subscribe();
+        bagBox.asObservable().subscribe(bagTestObserver);
+
+        // Fetcher should be called twice because we disable cache in config
         assertTestObserver(bagTestObserver, bag);
         fetcherCalled(bagFetcher, 2);
     }

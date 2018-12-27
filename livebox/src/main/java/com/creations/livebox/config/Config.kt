@@ -11,6 +11,7 @@ import java.io.File
 data class Config(
         val diskLruConfig: DiskLruConfig, val persistentConfig: DiskPersistentConfig,
         val serializer: Serializer, val journalDir: File?,
+        val disableCache: Boolean = false,
         private val disableLogging: Boolean
 ) {
 
@@ -41,7 +42,7 @@ data class Config(
             return Config(
                     diskLruConfig = lruConfig, persistentConfig = persistentConfig,
                     journalDir = journalDir, serializer = serializer,
-                    disableLogging = true
+                    disableCache = false, disableLogging = true
             )
         }
     }

@@ -56,6 +56,8 @@ class Box<I, O>(private val mType: Type) {
 
     init {
         mDataSourceFactoryList.add(LiveboxDataSourceFactory(Livebox.config.serializer, mType))
+        // Use default global settings
+        mIgnoreCache = Livebox.config.disableCache
     }
 
     enum class RetryStrategy {
