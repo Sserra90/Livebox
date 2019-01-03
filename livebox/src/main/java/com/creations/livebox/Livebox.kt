@@ -59,11 +59,6 @@ class Livebox<I, O> internal constructor(
     private val withShare = ObservableTransformer<O, O> { upstream ->
         Logger.d(TAG, "Compose with share")
         val observable = upstream
-                .doOnSubscribe {
-                    if (config.enableIdleResource) {
-                        idleResource.increment()
-                    }
-                }
                 .doFinally {
                     if (config.enableIdleResource) {
                         if (!idleResource.resource.isIdleNow) {
@@ -76,6 +71,9 @@ class Livebox<I, O> internal constructor(
                 }
                 .share()
 
+        if (config.enableIdleResource) {
+            idleResource.increment()
+        }
         inFlightRequests.putIfAbsent(mKey, observable)
         observable
     }
