@@ -6,7 +6,7 @@ import androidx.test.espresso.idling.CountingIdlingResource
 object CountingIdleResource {
 
     val resource: CountingIdlingResource =
-            CountingIdlingResource("global_counting_resource")
+            CountingIdlingResource("global_counting_resource", true)
 
     fun increment() {
         resource.increment()
