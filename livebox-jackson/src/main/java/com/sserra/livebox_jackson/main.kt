@@ -7,11 +7,13 @@ import com.creations.livebox.Box
 import com.creations.livebox.config.Config
 import com.creations.livebox.datasources.fetcher.Fetcher
 import com.creations.livebox.datasources.fetcher.FileFetcher
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.reactivex.Observable
 import java.io.File
 import java.io.InputStream
 
-fun config(context: Context) = Config.create(context, LiveboxJacksonSerializer.create())
+fun config(context: Context, objectMapper: ObjectMapper = ObjectMapper()) =
+        Config.create(context, LiveboxJacksonSerializer.create(objectMapper))
 
 inline fun <reified T, reified O> box(): Box<T, O> = Box(fromRef<T>())
 

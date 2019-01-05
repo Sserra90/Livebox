@@ -7,11 +7,12 @@ import com.creations.livebox.datasources.fetcher.Fetcher
 import com.creations.livebox.datasources.fetcher.FileFetcher
 import com.creations.serializer_gson.LiveboxGsonSerializer
 import com.creations.serializer_gson.fromType
+import com.google.gson.Gson
 import io.reactivex.Observable
 import java.io.File
 import java.io.InputStream
 
-fun config(context: Context) = Config.create(context, LiveboxGsonSerializer.create())
+fun config(context: Context, gson: Gson = Gson()) = Config.create(context, LiveboxGsonSerializer.create(gson))
 
 inline fun <reified T, reified O> box(): Box<T, O> = Box(fromType<T>())
 
