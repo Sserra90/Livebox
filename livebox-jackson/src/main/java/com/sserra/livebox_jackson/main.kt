@@ -17,25 +17,25 @@ fun config(context: Context, objectMapper: ObjectMapper = ObjectMapper()) =
 
 inline fun <reified T, reified O> box(): Box<T, O> = Box(fromRef<T>())
 
-inline fun <reified T> fileFetcher(context: Context, fileName: String) =
-        FileFetcher.create<T>(context, fileName, fromRef<T>(), LiveboxJacksonSerializer.create())
+inline fun <reified T> fileFetcher(context: Context, fileName: String, objectMapper: ObjectMapper = ObjectMapper()) =
+        FileFetcher.create<T>(context, fileName, fromRef<T>(), LiveboxJacksonSerializer.create(objectMapper))
 
-inline fun <reified T> fileFetcher(fileName: String) =
-        FileFetcher.create<T>(fileName, fromRef<T>(), LiveboxJacksonSerializer.create())
+inline fun <reified T> fileFetcher(fileName: String, objectMapper: ObjectMapper = ObjectMapper()) =
+        FileFetcher.create<T>(fileName, fromRef<T>(), LiveboxJacksonSerializer.create(objectMapper))
 
-inline fun <reified T> fileFetcher(file: File) =
-        FileFetcher.create<T>(file, fromRef<T>(), LiveboxJacksonSerializer.create())
+inline fun <reified T> fileFetcher(file: File, objectMapper: ObjectMapper = ObjectMapper()) =
+        FileFetcher.create<T>(file, fromRef<T>(), LiveboxJacksonSerializer.create(objectMapper))
 
-inline fun <reified T> fileFetcher(iss: InputStream) =
-        FileFetcher.create<T>(iss, fromRef<T>(), LiveboxJacksonSerializer.create())
+inline fun <reified T> fileFetcher(iss: InputStream, objectMapper: ObjectMapper = ObjectMapper()) =
+        FileFetcher.create<T>(iss, fromRef<T>(), LiveboxJacksonSerializer.create(objectMapper))
 
 fun <T> errorFetcher(throwable: Throwable = RuntimeException()): Fetcher<T> = object : Fetcher<T> {
     override fun fetch(): Observable<T> = Observable.error(throwable)
 }
 
-inline fun <reified T> Any.assetFetcher(fileName: String): Fetcher<T> =
+inline fun <reified T> Any.assetFetcher(fileName: String, objectMapper: ObjectMapper = ObjectMapper()): Fetcher<T> =
         FileFetcher.create(
                 javaClass.classLoader!!.getResourceAsStream("assets/$fileName"),
                 fromRef<T>(),
-                LiveboxJacksonSerializer.create()
+                LiveboxJacksonSerializer.create(objectMapper)
         )
