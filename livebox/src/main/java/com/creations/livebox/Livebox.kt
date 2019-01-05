@@ -10,7 +10,7 @@ import com.creations.livebox.datasources.disk.DiskPersistentDataSource
 import com.creations.livebox.datasources.fetcher.Fetcher
 import com.creations.livebox.rx.Transformers
 import com.creations.livebox.util.Optional
-import com.creations.livebox.util.isNull
+import com.creations.livebox.util.test.CountingIdleResource
 import com.creations.livebox.validator.Journal
 import com.creations.livebox.validator.Validator
 import com.creations.livebox_common.adapter.ObservableAdapter
@@ -60,11 +60,20 @@ class Livebox<I, O> internal constructor(
         Logger.d(TAG, "Compose with share")
         val observable = upstream
                 .doFinally {
+                    if (config.enableIdleResource) {
+                        if (!idleResource.resource.isIdleNow) {
+                            idleResource.decrement()
+                        }
+                    }
+
                     Logger.d(TAG, "Remove from inFlightRequests with key %s", mKey)
                     inFlightRequests.remove(mKey)
                 }
                 .share()
 
+        if (config.enableIdleResource) {
+            idleResource.increment()
+        }
         inFlightRequests.putIfAbsent(mKey, observable)
         observable
     }
@@ -159,7 +168,7 @@ class Livebox<I, O> internal constructor(
             val converter: Converter<T, O> = mConvertersMap[type] as Converter<T, O>
             val convertedData = converter.convert(data)
             Logger.d(TAG, "Converter found for type: $type")
-            if (isNull(convertedData)) {
+            if (convertedData == null) {
                 throw IllegalStateException("Converter: " + converter + "returned null for: " + data)
             }
             return convertedData
@@ -242,6 +251,7 @@ class Livebox<I, O> internal constructor(
 
         // Keeps a record of in-flight requests.
         private val inFlightRequests = ConcurrentHashMap<BoxKey, Observable<*>>()
+        private val idleResource: CountingIdleResource = CountingIdleResource
 
         lateinit var config: Config
         private var mInit = false
@@ -265,10 +275,6 @@ class Livebox<I, O> internal constructor(
             }
 
             Logger.d(TAG, "Init with config: $config")
-
-            if (isNull(config.serializer)) {
-                throw IllegalArgumentException("Serializer cannot be null")
-            }
 
             DiskPersistentDataSource.config = config.persistentConfig
             DiskLruDataSource.config = config.diskLruConfig

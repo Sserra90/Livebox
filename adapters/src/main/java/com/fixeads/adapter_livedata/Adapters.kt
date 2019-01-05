@@ -33,7 +33,7 @@ class StateAdapter<T> : ObservableAdapter<T, Observable<State<T>>> {
                 just(loading()),
                 observable
                         .map { success(it) }
-                        .onErrorReturn { error(StateError(it)) }
+                        .onErrorReturn { com.creations.runtime.state.error(StateError(it)) }
         )
     }
 }
