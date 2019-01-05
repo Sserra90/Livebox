@@ -64,6 +64,7 @@ public class LiveboxTest {
             LiveboxGsonSerializer.create(),
             RES_FILE,
             false,
+            true,
             true
     );
 
@@ -482,7 +483,8 @@ public class LiveboxTest {
                         LiveboxGsonSerializer.create(),
                         RES_FILE,
                         false,
-                        false
+                        false,
+                        true
                 )
         );
 
@@ -513,6 +515,7 @@ public class LiveboxTest {
                 new DiskPersistentConfig(RES_FILE),
                 LiveboxGsonSerializer.create(),
                 RES_FILE,
+                true,
                 true,
                 true
         ));

@@ -54,7 +54,7 @@ class LiveboxJacksonSerializer private constructor(private val mObjectMapper: Ob
     companion object {
         private const val TAG = "LiveboxJacksonSerialize"
         @JvmStatic
-        fun create(objectMapper: ObjectMapper = ObjectMapper()): Serializer = LiveboxJacksonSerializer(objectMapper)
+        fun create(objectMapper: ObjectMapper): Serializer = LiveboxJacksonSerializer(objectMapper)
     }
 
 }
