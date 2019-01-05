@@ -24,6 +24,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation "com.instagram.igdiskcache:ig-disk-cache:$igDiskCache"
     implementation "androidx.test.espresso:espresso-core:$espresso_test"
+    implementation 'com.android.support:multidex:1.0.3'
 
     testImplementation "androidx.test.espresso:espresso-core:$espresso_test"
     testImplementation "org.mockito:mockito-core:$mockito"

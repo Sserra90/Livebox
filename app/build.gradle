@@ -20,7 +20,9 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -77,6 +79,7 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:$androidx_constraint_layout"
     implementation "com.google.android.material:material:$androidx_material"
     implementation "androidx.lifecycle:lifecycle-extensions:$androidx_lifecycle"
+    implementation 'androidx.multidex:multidex:2.0.1'
 
     // Auto dipose
     implementation "com.uber.autodispose:autodispose-android-archcomponents:$autoDispose"
